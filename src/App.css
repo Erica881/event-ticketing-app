@@ -105,24 +105,29 @@ label {
   margin: 0 15px;
 }
 
+/* Add style for login/logout button */
+.navbar li:last-child {
+  margin-left: auto;
+}
+
 .navbar a,
 .navbar button {
-  color: #ffffff; /* White links/buttons on navbar */
+  color: #ffffff;
   text-decoration: none;
   font-size: 1.1em;
   background: none;
   border: none;
   cursor: pointer;
-  /* padding: 0 15px; */
+  padding: 8px 15px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
 }
 
 .navbar a:hover,
 .navbar button:hover {
-  /* text-decoration: underline; */
-  color: #cccccc;
-  background-color: #ffffff; /* white buttons */
-  border-radius: 50%;
-  padding: 5px 15px;
+  color: #000000;
+  background-color: #ffffff;
+  text-decoration: none;
 }
 
 /* Event Item */
