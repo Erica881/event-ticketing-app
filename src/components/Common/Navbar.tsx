@@ -36,7 +36,7 @@ const Navbar: React.FC = () => {
           </li>
         ) : (
           <li>
-            <Link to="/login">Login</Link>
+            <Link to="/login">Connect Wallet</Link>
           </li>
         )}
       </ul>

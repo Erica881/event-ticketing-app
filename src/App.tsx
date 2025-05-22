@@ -30,6 +30,7 @@ const AppContent: React.FC = () => {
       <Navbar />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        
         <Route path="/" element={<EventListPage />} />
         <Route
           path="/create-event"
