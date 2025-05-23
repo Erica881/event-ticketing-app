@@ -33,10 +33,19 @@ const EventListPage: React.FC = () => {
 
   return (
     <div className="container">
-      <h1>Upcoming Events</h1>
+      <div className="page-header">
+        <h1>Discover Amazing Events</h1>
+        <p className="page-subtitle">Find and book tickets for the best events in your area</p>
+      </div>
+      
       <EventFilter currentFilter={filter} onFilterChange={setFilter} />
+      
       {filteredEvents.length === 0 ? (
-        <p>No events match the current filter.</p>
+        <div className="no-events">
+          <div className="no-events-icon">🔍</div>
+          <p>No events match your current filter.</p>
+          <button onClick={() => setFilter("all")}>View All Events</button>
+        </div>
       ) : (
         <div className="event-list">
           {filteredEvents.map((event: Event) => (

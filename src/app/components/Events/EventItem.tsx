@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Event } from "../../interfaces";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -21,34 +21,73 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => {
     alert("Purchase functionality will be implemented soon!");
   };
 
+  // State for ticket quantity
+  const [quantity, setQuantity] = useState(1);
+  
+  // Handle quantity change
+  const handleQuantityChange = (change: number) => {
+    const newQuantity = quantity + change;
+    if (newQuantity >= 1 && newQuantity <= 10) {
+      setQuantity(newQuantity);
+    }
+  };
+
+  // Default image if none provided
+  const imageUrl = event.imageUrl || "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80";
+
   return (
     <div className="event-item">
-      {event.imageUrl && (
+      <div className="event-image-container">
         <img
-          src={event.imageUrl}
+          src={imageUrl}
           alt={event.name}
-          style={{ maxWidth: "100%", height: "auto", marginBottom: "10px" }}
+          className="event-image"
         />
-      )}
+        <div className="event-date-badge">
+          {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+        </div>
+      </div>
+      
       <div className="event-content">
         <h3>{event.name}</h3>
-        <p>
-          <strong>Date:</strong> {formattedDate}
+        <p className="event-time">
+          <i className="event-icon">🕒</i> {new Date(event.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
         </p>
-        <p>
-          <strong>Location:</strong> {event.location}
+        <p className="event-location">
+          <i className="event-icon">📍</i> {event.location}
         </p>
-        <p>
-          <strong>Price:</strong>{" "}
-          {event.isFree ? "Free" : `$${event.price.toFixed(2)}`}
+        <p className="event-price">
+          <i className="event-icon">{event.isFree ? '🎁' : '💰'}</i> 
+          {event.isFree ? "Free Entry" : `$${event.price.toFixed(2)}`}
         </p>
-        <p>{event.description}</p>
+        <p className="event-description">{event.description}</p>
+        
+        {!event.isFree && (
+          <div className="ticket-quantity">
+            <button 
+              className="quantity-btn"
+              onClick={() => handleQuantityChange(-1)}
+              disabled={quantity <= 1}
+            >
+              -
+            </button>
+            <span className="quantity-display">{quantity}</span>
+            <button 
+              className="quantity-btn"
+              onClick={() => handleQuantityChange(1)}
+              disabled={quantity >= 10}
+            >
+              +
+            </button>
+          </div>
+        )}
       </div>
+      
       <button 
         className="buy-button"
         onClick={handleBuyClick}
       >
-        {event.isFree ? "Register Now" : "Buy Ticket"}
+        {event.isFree ? "Register Now" : `Purchase Ticket${quantity > 1 ? 's' : ''} • $${(event.price * quantity).toFixed(2)}`}
       </button>
     </div>
   );

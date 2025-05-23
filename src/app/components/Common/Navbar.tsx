@@ -42,15 +42,15 @@ const Navbar: React.FC = () => {
       const shortAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
 
       return (
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-sm text-gray-600">
+        <div className="wallet-connected">
+          <span className="wallet-address">
             {shortAddress}
           </span>
           <button
             onClick={handleLogout}
-            className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm flex items-center gap-2"
+            className="wallet-disconnect"
           >
-            <IoWallet className="w-4 h-4" />
+            <IoWallet className="wallet-icon" />
             Disconnect
           </button>
         </div>
@@ -58,25 +58,17 @@ const Navbar: React.FC = () => {
     }
 
     return (
-      // <div className="relative">
-      //   <button
-      //     onClick={() => setIsWalletExpanded(!isWalletExpanded)}
-      //     className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm flex items-center gap-2"
-      //   >
-      //     <FaWallet className="w-4 h-4 flex items-center gap-2 " />
-      //     Connect Wallet
-      //   </button>
-      <div className="relative">
+      <div className="wallet-container">
         <button
           onClick={() => setIsWalletExpanded(!isWalletExpanded)}
-          className="bg-blue-500 text-white px-3 py-1 rounded gap-3 hover:bg-blue-600 text-sm flex items-center space-x-2"
+          className="wallet-connect-btn"
         >
-          <FaWallet className="w-4 h-4 m-8" />
+          <FaWallet className="wallet-icon" />
           <span>Connect Wallet</span>
         </button>
 
         {isWalletExpanded && (
-          <div className="absolute right-0 mt-2 py-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+          <div className="wallet-dropdown">
             {connectors.map((connector) => (
               <button
                 key={connector.uid}
@@ -84,7 +76,7 @@ const Navbar: React.FC = () => {
                   connect({ connector });
                   setIsWalletExpanded(false);
                 }}
-                className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2"
+                className="wallet-option"
               >
                 {getWalletIcon(connector.name)}
                 <span>{connector.name}</span>
@@ -98,6 +90,9 @@ const Navbar: React.FC = () => {
 
   return (
     <nav className="navbar">
+      <div className="navbar-logo">
+        <span className="logo-text">EventTix</span>
+      </div>
       <ul>
         <li>
           <a href="/" onClick={handleNavigation("/")}>
@@ -123,7 +118,7 @@ const Navbar: React.FC = () => {
             About Us
           </a>
         </li>
-        <li>{renderWalletConnection()}</li>
+        <li className="wallet-menu-item">{renderWalletConnection()}</li>
       </ul>
     </nav>
   );
