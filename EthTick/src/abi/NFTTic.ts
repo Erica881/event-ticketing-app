@@ -1,4 +1,4 @@
-export const NFTTicAbi = [
+export const nftTicAbi = [
   {
     inputs: [
       {
