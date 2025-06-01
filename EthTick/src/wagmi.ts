@@ -25,12 +25,12 @@
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 
 import {
-  arbitrum,
-  base,
+  // arbitrum,
+  // base,
   mainnet,
-  optimism,
+  // optimism,
   polygon,
-  sepolia,
+  // sepolia,
   scrollSepolia,
 } from "wagmi/chains";
 
@@ -40,11 +40,9 @@ export const config = getDefaultConfig({
   chains: [
     mainnet,
     polygon,
-    optimism,
-    arbitrum,
-    base,
+    scrollSepolia,
     ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === "true"
-      ? [sepolia, scrollSepolia]
+      ? [scrollSepolia]
       : []),
   ],
   ssr: true,

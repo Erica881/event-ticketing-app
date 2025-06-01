@@ -11,21 +11,22 @@ import {
 import { http, createConfig, WagmiProvider } from "wagmi";
 import { mainnet, sepolia } from "viem/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { config } from "../wagmi";
 
-const projectId = "YOUR_PROJECT_ID"; // Get this from WalletConnect Cloud
+// const projectId = "YOUR_PROJECT_ID"; // Get this from WalletConnect Cloud
 
-const { wallets } = getDefaultWallets({
-  appName: "Event Ticketing",
-  projectId,
-});
+// const { wallets } = getDefaultWallets({
+//   appName: "Event Ticketing",
+//   projectId,
+// });
 
-const config = createConfig({
-  chains: [mainnet, sepolia],
-  transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
-  },
-});
+// const config = createConfig({
+//   chains: [mainnet, sepolia],
+//   transports: {
+//     [mainnet.id]: http(),
+//     [sepolia.id]: http(),
+//   },
+// });
 
 const queryClient = new QueryClient();
 
