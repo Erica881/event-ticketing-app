@@ -3,8 +3,8 @@
 import React from "react";
 import type { NextPage } from "next";
 import Head from "next/head";
-import Navbar from "../components/Navbar";
-import EventListPage from "../components/Events/EventList"; // Import the EventListPage component
+import Navbar from "./Navbar";
+import EventListPage from "./Events/EventList"; // Import the EventListPage component
 
 const Home: NextPage = () => {
   return (
