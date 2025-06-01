@@ -91,7 +91,8 @@
 
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
+import Navbar from "../Navbar"; // Import the Navbar component
 
 export default function CreateEventForm() {
   const [formData, setFormData] = useState({
@@ -131,96 +132,113 @@ export default function CreateEventForm() {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-4 p-6 max-w-lg mx-auto bg-white rounded-xl shadow"
-    >
-      <h2 className="text-2xl font-bold text-center">Create Event</h2>
-
-      <input
-        type="text"
-        name="name"
-        placeholder="Event Name"
-        value={formData.name}
-        onChange={handleChange}
-        required
-        className="w-full p-2 border rounded"
-      />
-
-      <textarea
-        name="description"
-        placeholder="Event Description"
-        value={formData.description}
-        onChange={handleChange}
-        required
-        className="w-full p-2 border rounded"
-      />
-
-      <div className="flex items-center space-x-2">
+    <React.Fragment>
+      <Navbar />
+      <div className="container">
+        <div className="page-header">
+          <h1>Create a New Event</h1>
+          <p className="page-subtitle">
+            Fill in the details below to list your event on the platform.
+          </p>
+        </div>
+        <form
+          onSubmit={handleSubmit}
+          className="create-event-form"
+        >
+        <label htmlFor="name">Event Name</label>
         <input
-          type="checkbox"
-          name="isFree"
-          checked={formData.isFree}
+          type="text"
+          id="name"
+          name="name"
+          placeholder="e.g., Annual Tech Summit"
+          value={formData.name}
           onChange={handleChange}
+          required
         />
-        <label>Is this event free?</label>
+
+        <label htmlFor="description">Event Description</label>
+        <textarea
+          id="description"
+          name="description"
+          placeholder="Tell us more about your event..."
+          value={formData.description}
+          onChange={handleChange}
+          required
+        />
+
+        <div className="form-checkbox-group">
+          <input
+            type="checkbox"
+            id="isFree"
+            name="isFree"
+            checked={formData.isFree}
+            onChange={handleChange}
+          />
+          <label htmlFor="isFree" className="checkbox-label">Is this event free?</label>
+        </div>
+
+        <label htmlFor="cost">Ticket Price (ETH)</label>
+        <input
+          type="number"
+          id="cost"
+          name="cost"
+          placeholder="e.g., 0.1"
+          value={formData.cost}
+          onChange={handleChange}
+          disabled={formData.isFree}
+          required={!formData.isFree}
+          step="any"
+        />
+
+        <label htmlFor="maxTickets">Max Tickets</label>
+        <input
+          type="number"
+          id="maxTickets"
+          name="maxTickets"
+          placeholder="e.g., 100"
+          value={formData.maxTickets}
+          onChange={handleChange}
+          required
+        />
+
+        <label htmlFor="date">Event Date</label>
+        <input
+          type="date"
+          id="date"
+          name="date"
+          value={formData.date}
+          onChange={handleChange}
+          required
+        />
+
+        <label htmlFor="time">Event Time</label>
+        <input
+          type="time"
+          id="time"
+          name="time"
+          value={formData.time}
+          onChange={handleChange}
+          required
+        />
+
+        <label htmlFor="location">Location</label>
+        <input
+          type="text"
+          id="location"
+          name="location"
+          placeholder="e.g., Online or City Convention Center"
+          value={formData.location}
+          onChange={handleChange}
+          required
+        />
+
+        <button
+          type="submit"
+        >
+          Create Event
+        </button>
+      </form>
       </div>
-
-      <input
-        type="number"
-        name="cost"
-        placeholder="Ticket Price (ETH)"
-        value={formData.cost}
-        onChange={handleChange}
-        disabled={formData.isFree}
-        required={!formData.isFree}
-        className="w-full p-2 border rounded"
-      />
-
-      <input
-        type="number"
-        name="maxTickets"
-        placeholder="Max Tickets"
-        value={formData.maxTickets}
-        onChange={handleChange}
-        required
-        className="w-full p-2 border rounded"
-      />
-
-      <input
-        type="date"
-        name="date"
-        value={formData.date}
-        onChange={handleChange}
-        required
-        className="w-full p-2 border rounded"
-      />
-
-      <input
-        type="time"
-        name="time"
-        value={formData.time}
-        onChange={handleChange}
-        required
-        className="w-full p-2 border rounded"
-      />
-
-      <input
-        type="text"
-        name="location"
-        placeholder="Location"
-        value={formData.location}
-        onChange={handleChange}
-        required
-        className="w-full p-2 border rounded"
-      />
-
-      <button
-        type="submit"
-        className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
-      >
-        Create Event
-      </button>
-    </form>
+    </React.Fragment>
   );
 }
