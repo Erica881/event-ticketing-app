@@ -6,39 +6,44 @@ import { useRouter } from "next/router";
 const Navbar: React.FC = () => {
   const router = useRouter();
 
+  // Helper function to determine if a link is active, can be more sophisticated
+  const isActive = (pathname: string) => router.pathname === pathname;
+
   return (
     <nav className="navbar">
+      <div className="navbar-logo">
+        <Link href="/" legacyBehavior>
+          <a className="logo-text">EthTick</a>
+        </Link>
+      </div>
       <ul>
         <li>
-          <Link href="/" className={router.pathname === "/" ? "active" : ""}>
-            Home
+          <Link href="/" legacyBehavior>
+            <a className={isActive("/") ? "active" : ""}>Home</a>
+          </Link>
+        </li>
+        {/* Assuming authenticated routes might be added later, similar to prototype */}
+        {/* For now, keeping it simple based on existing EthTick structure */}
+        <li>
+          <Link href="/create-event" legacyBehavior>
+            <a className={isActive("/create-event") ? "active" : ""}>
+              Create Event
+            </a>
           </Link>
         </li>
         <li>
-          <Link
-            href="/create-event"
-            className={router.pathname === "/create-event" ? "active" : ""}
-          >
-            Create Event
+          <Link href="/my-tickets" legacyBehavior>
+            <a className={isActive("/my-tickets") ? "active" : ""}>
+              My Tickets
+            </a>
           </Link>
         </li>
         <li>
-          <Link
-            href="/my-tickets"
-            className={router.pathname === "/my-tickets" ? "active" : ""}
-          >
-            My Tickets
+          <Link href="/about" legacyBehavior>
+            <a className={isActive("/about") ? "active" : ""}>About Us</a>
           </Link>
         </li>
-        <li>
-          <Link
-            href="/about"
-            className={router.pathname === "/about" ? "active" : ""}
-          >
-            About Us
-          </Link>
-        </li>
-        <li className="connect-button">
+        <li className="wallet-menu-item"> {/* Use prototype's class for styling */}
           <ConnectButton />
         </li>
       </ul>
