@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-contract TokenMaster is ERC721 {
+contract NFTTic is ERC721 {
     address public owner;
     uint256 public totalOccasions;
     uint256 public totalSupply;
@@ -23,6 +23,7 @@ contract TokenMaster is ERC721 {
     mapping(uint256 => mapping(address => bool)) public hasBought;
     mapping(uint256 => mapping(uint256 => address)) public seatTaken;
     mapping(uint256 => uint256[]) seatsTaken;
+    mapping(uint256 => uint256) public escrowBalance;
 
     modifier onlyOwner() {
         require(msg.sender == owner);
@@ -57,37 +58,65 @@ contract TokenMaster is ERC721 {
         );
     }
 
-    function mint(uint256 _id, uint256 _seat) public payable {
-        // Require that _id is not 0 or less than total occasions...
-        require(_id != 0);
-        require(_id <= totalOccasions);
 
-        // Require that ETH sent is greater than cost...
-        require(msg.value >= occasions[_id].cost);
+    function mint(uint256 _id) public payable {
+        require(_id != 0 && _id <= totalOccasions, "Invalid occasion ID");
+        require(msg.value >= occasions[_id].cost, "Insufficient ETH sent");
+        require(occasions[_id].tickets > 0, "Sold out");
+        require(!hasBought[_id][msg.sender], "Already purchased");
 
-        // Require that the seat is not taken, and the seat exists...
-        require(seatTaken[_id][_seat] == address(0));
-        require(_seat <= occasions[_id].maxTickets);
+        // Find the next available seat (from 1 to maxTickets)
+        uint256 seatToAssign = 0;
+        for (uint256 i = 1; i <= occasions[_id].maxTickets; i++) {
+            if (seatTaken[_id][i] == address(0)) {
+                seatToAssign = i;
+                break;
+            }
+        }
 
-        occasions[_id].tickets -= 1; // <-- Update ticket count
+        require(seatToAssign != 0, "No available seats");
 
-        hasBought[_id][msg.sender] = true; // <-- Update buying status
-        seatTaken[_id][_seat] = msg.sender; // <-- Assign seat
-
-        seatsTaken[_id].push(_seat); // <-- Update seats currently taken
+        occasions[_id].tickets--;
+        hasBought[_id][msg.sender] = true;
+        seatTaken[_id][seatToAssign] = msg.sender;
+        seatsTaken[_id].push(seatToAssign);
 
         totalSupply++;
-
         _safeMint(msg.sender, totalSupply);
     }
 
-    function getOccasion(uint256 _id) public view returns (Occasion memory) {
-        return occasions[_id];
+
+    // function getOccasion(uint256 _id) public view returns (Occasion memory) {
+    //     return occasions[_id];
+    // }
+    function getAllOccasions() public view returns (Occasion[] memory) {
+        Occasion[] memory allOccasions = new Occasion[](totalOccasions);
+        for (uint256 i = 1; i <= totalOccasions; i++) {
+            allOccasions[i - 1] = occasions[i];
+        }
+        return allOccasions;
     }
 
-    function getSeatsTaken(uint256 _id) public view returns (uint256[] memory) {
-        return seatsTaken[_id];
+
+    function getRangedOccasions(uint256 start, uint256 end) public view returns (Occasion[] memory) {
+        require(end >= start, "Invalid range");
+        require(end <= totalOccasions, "Out of range");
+
+        Occasion[] memory pagedOccasions = new Occasion[](end - start + 1);
+        uint256 index = 0;
+
+        for (uint256 i = start; i <= end; i++) {
+            pagedOccasions[index] = occasions[i];
+            index++;
+        }
+
+        return pagedOccasions;
     }
+
+
+    // function getSeatsTaken(uint256 _id) public view returns (uint256[] memory) {
+    //     return seatsTaken[_id];
+    // }
 
     function withdraw() public onlyOwner {
         (bool success, ) = owner.call{value: address(this).balance}("");
