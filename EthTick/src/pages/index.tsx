@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+// import { ConnectButton } from "@rainbow-me/rainbowkit";
 import type { NextPage } from "next";
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
@@ -22,7 +22,7 @@ const Home: NextPage = () => {
         <div className="connect-wallet-container">
           <h1>Welcome to Event Ticketing</h1>
           <p>Connect your wallet to get started</p>
-          <ConnectButton />
+          {/* <ConnectButton /> */}
 
           <div className={styles.grid}>
             <a className={styles.card} href="https://rainbowkit.com">
