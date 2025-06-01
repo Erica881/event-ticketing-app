@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 // import { useEvents } from "../../contexts/EventContext"; // Assuming similar context or hook
 import EventItem from "./EventItem";
 import EventFilter from "./EventFilter";
-import { Event } from "../interfaces";
+import { Event } from "../../interfaces";
 
 // Sample Data - Replace with actual data fetching
 const sampleEvents: Event[] = [
@@ -11,33 +11,38 @@ const sampleEvents: Event[] = [
     name: "Tech Conference 2025",
     date: "2025-08-15T09:00:00Z",
     location: "Online",
-    description: "Join us for the biggest tech conference of the year. Learn about the latest trends in AI, Blockchain, and Web3.",
+    description:
+      "Join us for the biggest tech conference of the year. Learn about the latest trends in AI, Blockchain, and Web3.",
     price: 0,
     isFree: true,
-    imageUrl: "https://images.unsplash.com/photo-1496171367470-9ed9a91ea931?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"
+    imageUrl:
+      "https://images.unsplash.com/photo-1496171367470-9ed9a91ea931?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
   },
   {
     id: "2",
     name: "Music Fest",
     date: "2025-09-05T18:00:00Z",
     location: "City Park",
-    description: "An outdoor music festival featuring top artists. Enjoy live music, food trucks, and more.",
+    description:
+      "An outdoor music festival featuring top artists. Enjoy live music, food trucks, and more.",
     price: 75,
     isFree: false,
-    imageUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80"
+    imageUrl:
+      "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80",
   },
   {
     id: "3",
     name: "Art Exhibition",
     date: "2025-07-20T10:00:00Z",
     location: "Downtown Gallery",
-    description: "Explore stunning artworks from local and international artists. A must-see for art lovers.",
+    description:
+      "Explore stunning artworks from local and international artists. A must-see for art lovers.",
     price: 20,
     isFree: false,
-    imageUrl: "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"
+    imageUrl:
+      "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
   },
 ];
-
 
 const EventListPage: React.FC = () => {
   // const { events, isLoading, error } = useEvents(); // Placeholder for data fetching
@@ -74,11 +79,13 @@ const EventListPage: React.FC = () => {
     <div className="container">
       <div className="page-header">
         <h1>Discover Amazing Events</h1>
-        <p className="page-subtitle">Find and book tickets for the best events in your area</p>
+        <p className="page-subtitle">
+          Find and book tickets for the best events in your area
+        </p>
       </div>
-      
+
       <EventFilter currentFilter={filter} onFilterChange={setFilter} />
-      
+
       {filteredEvents.length === 0 ? (
         <div className="no-events">
           <div className="no-events-icon">🔍</div>

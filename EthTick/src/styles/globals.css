@@ -504,34 +504,31 @@ label {
   background-color: #4a4a4a;
 }
 
-.filter-container select:focus {
-  box-shadow: 0 0 0 2px #f9cb28;
-}
-
-.filter-count {
-  margin-left: 20px;
+/* Footer Styles (Basic) */
+footer {
+  text-align: center;
+  padding: 25px 0;
+  margin-top: 40px;
+  border-top: 1px solid #333333;
   font-size: 0.9rem;
-  color: #cccccc;
+  color: #aaaaaa;
 }
 
-/* Responsive Design */
+footer a {
+  color: #f9cb28;
+  text-decoration: none;
+}
+
+footer a:hover {
+  color: #ff4d4d;
+  text-decoration: underline;
+}
+
+/* Responsive Adjustments */
 @media (max-width: 768px) {
   .container {
     width: 95%;
-    padding: 15px;
-  }
-
-  .navbar ul {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .navbar li {
-    margin: 10px 0;
-  }
-
-  .event-list {
-    grid-template-columns: 1fr;
+    padding: 20px;
   }
 
   h1 {
@@ -541,31 +538,158 @@ label {
   .page-subtitle {
     font-size: 1rem;
   }
+
+  .navbar ul {
+    width: 90%;
+    justify-content: space-around;
+  }
+
+  .navbar li {
+    margin: 0 8px;
+  }
+
+  .navbar a, .navbar button {
+    font-size: 1em;
+    padding: 6px 10px;
+  }
+
+  .event-list {
+    grid-template-columns: 1fr; /* Stack events on smaller screens */
+    gap: 25px;
+  }
+
+  .event-item h3 {
+    font-size: 1.3rem;
+  }
+
+  .filter-container {
+    flex-direction: column;
+    gap: 15px;
+  }
 }
 
-/* RainbowKit Custom Styles - Keep these if EthTick uses RainbowKit */
-[data-rk] {
-  --rk-colors-accentColor: #f9cb28; /* Use a vibrant accent from the theme */
-  --rk-colors-accentColorForeground: #121212; /* Text color on accent */
-  
-  --rk-colors-connectButtonBackground: linear-gradient(135deg, #ff4d4d, #f9cb28); /* Gradient for connect button */
-  --rk-colors-connectButtonText: #ffffff;
-  --rk-colors-connectButtonBackgroundError: #ff4d4d; /* Error state color */
-  
-  --rk-colors-modalBackground: #1e1e1e; /* Dark modal background */
-  --rk-colors-modalText: #ffffff; /* White text in modal */
-  --rk-colors-modalTextSecondary: #cccccc; /* Lighter secondary text */
-  
-  --rk-colors-selectedWalletBackground: #2a2a2a; /* Background for selected wallet */
-  --rk-colors-generalBorder: #3a3a3a; /* Border color */
-  
-  --rk-fonts-body: 'Poppins', sans-serif; /* Consistent font */
-  
-  --rk-radii-actionButton: 30px; /* Rounded action buttons */
-  --rk-radii-connectButton: 30px; /* Rounded connect button */
-  --rk-radii-menuButton: 30px; /* Rounded menu buttons */
-  --rk-radii-modal: 12px; /* Rounded modals */
-  --rk-radii-modalMobile: 12px; /* Rounded mobile modals */
+@media (max-width: 480px) {
+  .navbar-logo {
+    margin-left: 15px;
+  }
+  .logo-text {
+    font-size: 1.5rem;
+  }
+  .navbar a, .navbar button {
+    font-size: 0.9em;
+  }
+  .wallet-connect-btn, .wallet-disconnect {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+  .page-header {
+    margin-bottom: 1.5rem;
+  }
+  h1 {
+    font-size: 1.8rem;
+  }
+  .page-subtitle {
+    font-size: 0.9rem;
+  }
+  button, input[type="submit"] {
+    padding: 10px 15px;
+    font-size: 0.9em;
+  }
+  .event-item .buy-button {
+    padding: 12px 15px;
+    font-size: 0.9rem;
+  }
+}
 
-  /* Add more specific overrides if needed */
+/* Create Event Form Specific Styles */
+.create-event-form {
+  background-color: #2a2a2a; /* Darker background for the form area */
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  margin-top: 2rem;
+  display: grid;
+  gap: 20px; /* Spacing between form elements */
+}
+
+.create-event-form label {
+  font-weight: 500;
+  color: #f9cb28; /* Accent color for labels */
+  margin-bottom: 5px; /* Reduced margin as gap handles spacing */
+  font-size: 1rem; /* Increased font size */
+}
+
+.create-event-form input[type="text"],
+.create-event-form input[type="number"],
+.create-event-form input[type="date"],
+.create-event-form input[type="time"],
+.create-event-form textarea {
+  background-color: #1e1e1e; /* Darker input background */
+  color: #ffffff;
+  border: 1px solid #444444; /* Subtle border */
+  border-radius: 8px;
+  padding: 12px;
+  width: 100%; /* Ensure full width */
+  box-sizing: border-box; /* Include padding and border in element's total width and height */
+  transition: border-color 0.3s ease;
+  font-size: 1rem; /* Increased font size */
+}
+
+.create-event-form input[type="text"]:focus,
+.create-event-form input[type="number"]:focus,
+.create-event-form input[type="date"]:focus,
+.create-event-form input[type="time"]:focus,
+.create-event-form textarea:focus {
+  border-color: #f9cb28; /* Highlight focus with accent color */
+  outline: none;
+}
+
+.create-event-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.form-checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0; /* Add some padding around the checkbox group */
+}
+
+.form-checkbox-group input[type="checkbox"] {
+  width: auto; /* Override default input width */
+  margin-right: 8px;
+  accent-color: #f9cb28; /* Style the checkbox color */
+  transform: scale(1.2); /* Make checkbox slightly larger */
+}
+
+.form-checkbox-group .checkbox-label {
+  color: #e0e0e0; /* Lighter text for checkbox label */
+  font-weight: normal; /* Normal weight for this label */
+  margin-bottom: 0; /* Remove bottom margin for inline alignment */
+  font-size: 1rem; /* Increased font size */
+}
+
+.create-event-form button[type="submit"] {
+  width: 100%; /* Full width button */
+  padding: 15px; /* Larger padding for primary action */
+  font-size: 1.1rem;
+  margin-top: 10px; /* Add some space above the button */
+}
+
+/* Ensure date and time inputs are styled like other inputs */
+input[type="date"],
+input[type="time"] {
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ffffff;
+  background-color: #000000;
+  color: #ffffff;
+  width: calc(100% - 22px);
+  color-scheme: dark; /* Helps with native date/time picker styling in dark mode */
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1); /* Makes the calendar icon white */
 }
