@@ -1,0 +1,571 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+body {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #121212; /* Dark background but not pure black for better contrast */
+  color: #ffffff; /* white text */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.container {
+  width: 85%;
+  margin: 20px auto;
+  padding: 25px;
+  background-color: #1e1e1e; /* Slightly lighter than body for contrast */
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  flex-grow: 1;
+  border: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: #ffffff;
+  font-weight: 600;
+  margin-bottom: 0.8em;
+}
+
+h1 {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  position: relative;
+  padding-bottom: 0.5rem;
+  background: linear-gradient(90deg, #ff4d4d, #f9cb28);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 700;
+}
+
+/* Page Header Styles */
+.page-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.page-subtitle {
+  font-size: 1.2rem;
+  color: #cccccc;
+  max-width: 600px;
+  margin: 0 auto 1.5rem;
+  text-align: center;
+}
+
+/* No Events Message */
+.no-events {
+  text-align: center;
+  padding: 3rem 1rem;
+  background-color: #2a2a2a;
+  border-radius: 12px;
+  margin: 2rem 0;
+}
+
+.no-events-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.no-events p {
+  font-size: 1.2rem;
+  color: #cccccc;
+  margin-bottom: 1.5rem;
+}
+
+.no-events button {
+  padding: 12px 25px;
+}
+
+a {
+  color: #f9cb28;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+a:hover {
+  color: #ff4d4d;
+  text-decoration: none;
+}
+
+button,
+input[type="submit"] {
+  background: linear-gradient(135deg, #ff4d4d, #f9cb28);
+  color: #ffffff;
+  border: none;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 500;
+  border-radius: 30px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 77, 77, 0.3);
+}
+
+button:hover,
+input[type="submit"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 77, 77, 0.4);
+}
+
+button:disabled {
+  background-color: #cccccc; /* Light grey for disabled buttons */
+  color: #666666;
+  cursor: not-allowed;
+  border-color: #999999;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="datetime-local"],
+textarea,
+select {
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ffffff; /*  White borders for inputs */
+  background-color: #000000; /* Black background for inputs */
+  color: #ffffff; /* Black text in inputs */
+  width: calc(100% - 22px); /* Account for padding and border */
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+/* Navigation Bar */
+.navbar {
+  background-color: rgba(30, 30, 30, 0.95);
+  padding: 15px 0;
+  margin-bottom: 30px;
+  text-align: center;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar-logo {
+  margin-left: 30px;
+}
+
+.logo-text {
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: linear-gradient(90deg, #ff4d4d, #f9cb28);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: 1px;
+}
+
+.navbar ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  width: 80%;
+  align-items: center;
+}
+
+.navbar li {
+  margin: 0 15px;
+}
+
+/* Add style for wallet menu item */
+.wallet-menu-item {
+  margin-left: auto;
+}
+
+.navbar a,
+.navbar button {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 1.1em;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 15px;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.navbar a:hover,
+.navbar button:hover {
+  color: #ffffff;
+  background: linear-gradient(135deg, #ff4d4d, #f9cb28);
+  text-decoration: none;
+  box-shadow: 0 4px 15px rgba(255, 77, 77, 0.3);
+}
+
+/* Wallet Connection Styles */
+.wallet-container {
+  position: relative;
+}
+
+.wallet-connect-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #ff4d4d, #f9cb28);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 25px;
+  font-weight: 500;
+}
+
+.wallet-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.wallet-dropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 10px;
+  background-color: #2a2a2a;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  width: 200px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.wallet-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 15px;
+  text-align: left;
+  background: none;
+  border: none;
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.wallet-option:hover {
+  background-color: #3a3a3a;
+}
+
+.wallet-connected {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wallet-address {
+  font-family: monospace;
+  background-color: #2a2a2a;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+}
+
+.wallet-disconnect {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(135deg, #ff4d4d, #f9cb28);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+}
+
+/* Event Grid Layout */
+.event-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 30px;
+  margin: 40px 0;
+}
+
+/* Event Item */
+.event-item {
+  border: none;
+  padding: 0;
+  background-color: #2a2a2a;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.event-item:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+}
+
+.event-content {
+  padding: 20px;
+}
+
+.event-item h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+  color: #f9cb28;
+}
+
+.event-item p {
+  margin: 5px 0;
+}
+
+/* Event Image Container and Image */
+.event-image-container {
+  position: relative;
+  overflow: hidden;
+  height: 220px;
+}
+
+.event-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: all 0.5s ease;
+}
+
+.event-item:hover img {
+  transform: scale(1.05);
+}
+
+/* Event Date Badge */
+.event-date-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: linear-gradient(135deg, #ff4d4d, #f9cb28);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+/* Event Details Styling */
+.event-time, .event-location, .event-price {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  color: #e0e0e0;
+}
+
+.event-icon {
+  margin-right: 10px;
+  font-style: normal;
+}
+
+.event-description {
+  margin-top: 15px;
+  color: #cccccc;
+  line-height: 1.6;
+}
+
+.event-item .event-content {
+  flex-grow: 1;
+  padding: 20px;
+}
+
+/* Ticket Quantity Selector */
+.ticket-quantity {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0;
+  background-color: #3a3a3a;
+  border-radius: 30px;
+  padding: 5px;
+  width: fit-content;
+}
+
+.quantity-btn {
+  background: #2a2a2a;
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: none;
+}
+
+.quantity-btn:hover:not(:disabled) {
+  background: #444;
+  transform: none;
+}
+
+.quantity-btn:disabled {
+  background: #333;
+  color: #666;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.quantity-display {
+  padding: 0 20px;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+/* Purchase Button */
+.event-item .buy-button {
+  margin: 0;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #ff4d4d, #f9cb28);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  width: 100%;
+  border-radius: 0 0 12px 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 1rem;
+}
+
+.event-item .buy-button:hover {
+  background: linear-gradient(135deg, #f9cb28, #ff4d4d);
+  box-shadow: 0 5px 15px rgba(255, 77, 77, 0.4);
+}
+
+.event-item .buy-button:disabled {
+  background-color: #666666;
+  cursor: not-allowed;
+}
+
+/* Filter */
+.filter-container {
+  margin-bottom: 30px;
+  padding: 15px 25px;
+  border: none;
+  background-color: #2a2a2a;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  position: relative;
+}
+
+.filter-icon {
+  font-size: 1.3rem;
+  margin-right: 15px;
+}
+
+.filter-container label {
+  margin-right: 10px;
+  font-weight: 500;
+  color: #f9cb28;
+}
+
+.filter-container select {
+  padding: 10px 20px;
+  border: none;
+  background-color: #3a3a3a;
+  color: #ffffff;
+  border-radius: 25px;
+  outline: none;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.filter-container select:hover {
+  background-color: #4a4a4a;
+}
+
+.filter-container select:focus {
+  box-shadow: 0 0 0 2px #f9cb28;
+}
+
+.filter-count {
+  margin-left: 20px;
+  font-size: 0.9rem;
+  color: #cccccc;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    width: 95%;
+    padding: 15px;
+  }
+
+  .navbar ul {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .navbar li {
+    margin: 10px 0;
+  }
+
+  .event-list {
+    grid-template-columns: 1fr;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  .page-subtitle {
+    font-size: 1rem;
+  }
+}
+
+/* RainbowKit Custom Styles - Keep these if EthTick uses RainbowKit */
+[data-rk] {
+  --rk-colors-accentColor: #f9cb28; /* Use a vibrant accent from the theme */
+  --rk-colors-accentColorForeground: #121212; /* Text color on accent */
+  
+  --rk-colors-connectButtonBackground: linear-gradient(135deg, #ff4d4d, #f9cb28); /* Gradient for connect button */
+  --rk-colors-connectButtonText: #ffffff;
+  --rk-colors-connectButtonBackgroundError: #ff4d4d; /* Error state color */
+  
+  --rk-colors-modalBackground: #1e1e1e; /* Dark modal background */
+  --rk-colors-modalText: #ffffff; /* White text in modal */
+  --rk-colors-modalTextSecondary: #cccccc; /* Lighter secondary text */
+  
+  --rk-colors-selectedWalletBackground: #2a2a2a; /* Background for selected wallet */
+  --rk-colors-generalBorder: #3a3a3a; /* Border color */
+  
+  --rk-fonts-body: 'Poppins', sans-serif; /* Consistent font */
+  
+  --rk-radii-actionButton: 30px; /* Rounded action buttons */
+  --rk-radii-connectButton: 30px; /* Rounded connect button */
+  --rk-radii-menuButton: 30px; /* Rounded menu buttons */
+  --rk-radii-modal: 12px; /* Rounded modals */
+  --rk-radii-modalMobile: 12px; /* Rounded mobile modals */
+
+  /* Add more specific overrides if needed */
+}
