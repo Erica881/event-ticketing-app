@@ -21,9 +21,9 @@ export const config = getDefaultConfig({
     scrollSepolia,
     optimism,
     // sepolia,
-    // ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === "true"
-    //   ? [scrollSepolia]
-    //   : []),
+    ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === "true"
+      ? [scrollSepolia]
+      : []),
   ],
   ssr: true,
 });

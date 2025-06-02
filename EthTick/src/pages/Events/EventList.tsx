@@ -57,18 +57,25 @@ const EventListPage: React.FC = () => {
 
   const [filter, setFilter] = useState<"all" | "free" | "payable">("all");
   const contract_details = useReadContract({
-    address: CONTRACT_ADDRESS,
     abi: nftTicAbi,
+    address: CONTRACT_ADDRESS,
     functionName: "getAllOccasions",
   });
 
   useEffect(() => {
+    console.log(
+      "Contract ABI getAllOccasions:",
+      nftTicAbi.find((f) => f.name === "getAllOccasions")
+    );
+    console.log("Calling contract at:", CONTRACT_ADDRESS);
+
     if (Array.isArray(contract_details.data)) {
       console.log("✅ Contract read successful:");
       console.log("Raw contract details:", contract_details.data);
       const eventsFromChain = contract_details.data.map(
         (item: any, index: number) => ({
-          id: item.id?.toString() || index.toString(),
+          // id: item.id?.toString() || index.toString(),
+          id: (index + 4).toString(), // offset by 3
           name: item.name,
           date: item.date,
           time: item.time,
@@ -82,9 +89,7 @@ const EventListPage: React.FC = () => {
       );
 
       setRealEvents(eventsFromChain);
-    }
-
-    if (contract_details.error) {
+    } else if (contract_details.error) {
       console.error("❌ Contract read error:", contract_details.error);
     }
   }, [contract_details.data, contract_details.error]);
