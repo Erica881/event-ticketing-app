@@ -9,8 +9,7 @@ export interface Event {
   cost: string; // ETH price as string
   maxTickets: number;
   isFree: boolean;
-  imageUrl?: string; // Optional image
-  image?: File | null; // For form handling
+  imageUrl?: string; // Optional image URL
 }
 
 export interface Ticket {

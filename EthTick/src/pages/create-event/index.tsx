@@ -27,10 +27,8 @@ export default function CreateEvent() {
     date: "",
     time: "",
     location: "",
-    image: null as File | null,
+    imageUrl: "",
   });
-
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   // const { write, isLoading, isSuccess } = useContractWrite(config);
   // const { data: hash, writeContract} = useWriteContract();
@@ -40,24 +38,6 @@ export default function CreateEvent() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setForm((prev) => ({
-      ...prev,
-      image: file,
-    }));
-
-    // Create preview URL
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setImagePreview(null);
-    }
-  };
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
@@ -134,35 +114,24 @@ export default function CreateEvent() {
                 />
               </div>
 
-              {/* Image Upload */}
+              {/* Image URL */}
               <div className="form-group">
-                <label htmlFor="image">Event Image</label>
-                <div className="image-upload-container">
-                  <input
-                    type="file"
-                    id="image"
-                    name="image"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="image-input"
-                  />
-                  <label htmlFor="image" className="image-upload-label">
-                    {imagePreview ? (
-                      <div className="image-preview">
-                        <img src={imagePreview} alt="Event preview" />
-                        <div className="image-overlay">
-                          <span>📷 Change Image</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="image-placeholder">
-                        <span className="upload-icon">📷</span>
-                        <span>Upload Event Image</span>
-                        <small>JPG, PNG, GIF up to 10MB</small>
-                      </div>
-                    )}
-                  </label>
-                </div>
+                <label htmlFor="imageUrl">Event Image URL</label>
+                <input
+                  id="imageUrl"
+                  name="imageUrl"
+                  type="url"
+                  placeholder="https://example.com/image.jpg"
+                  value={form.imageUrl}
+                  onChange={handleChange}
+                />
+                {form.imageUrl && (
+                  <div className="image-preview-url">
+                    <img src={form.imageUrl} alt="Event preview" onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }} />
+                  </div>
+                )}
               </div>
 
               {/* Cost, Max Tickets, and Date Row */}

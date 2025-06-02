@@ -759,97 +759,25 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   line-height: 1.6;
 }
 
-/* Image Upload Styles */
-.image-upload-container {
-  position: relative;
-}
-
-.image-input {
-  display: none;
-}
-
-.image-upload-label {
-  display: block;
-  cursor: pointer;
-  border: 2px dashed #444;
+/* Image URL Preview Styles */
+.image-preview-url {
+  margin-top: 15px;
   border-radius: 12px;
-  padding: 0;
-  transition: all 0.3s ease;
   overflow: hidden;
   background-color: #1a1a1a;
-  min-height: 200px;
+  border: 2px solid #444;
 }
 
-.image-upload-label:hover {
-  border-color: #f9cb28;
-  background-color: #222;
-}
-
-.image-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 50px 30px;
-  text-align: center;
-  color: #cccccc;
-  min-height: 200px;
-}
-
-.upload-icon {
-  font-size: 3rem;
-  margin-bottom: 15px;
-  display: block;
-}
-
-.image-placeholder span:not(.upload-icon) {
-  font-size: 1.1rem;
-  font-weight: 500;
-  margin-bottom: 8px;
-  display: block;
-}
-
-.image-placeholder small {
-  color: #888;
-  font-size: 0.9rem;
-}
-
-.image-preview {
-  position: relative;
+.image-preview-url img {
   width: 100%;
   height: 200px;
-}
-
-.image-preview img {
-  width: 100%;
-  height: 100%;
   object-fit: cover;
-  border-radius: 10px;
+  display: block;
+  transition: all 0.3s ease;
 }
 
-.image-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  border-radius: 10px;
-}
-
-.image-preview:hover .image-overlay {
-  opacity: 1;
-}
-
-.image-overlay span {
-  color: white;
-  font-weight: 500;
-  font-size: 1rem;
+.image-preview-url img:hover {
+  transform: scale(1.02);
 }
 
 /* Wallet Warning */
