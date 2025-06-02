@@ -7,6 +7,7 @@ import {
 } from "wagmi";
 import { parseEther } from "viem";
 import { nftTicAbi } from "../../abi/NFTTic"; // You must provide the ABI file
+import Navbar from "../Navbar";
 
 const CONTRACT_ADDRESS = "0xc753037F5C01FfA0864aaf499C93D6Fa221613C3"; // Replace with actual deployed contract address
 
@@ -26,8 +27,10 @@ export default function CreateEvent() {
     date: "",
     time: "",
     location: "",
-    inputImage: "",
+    image: null as File | null,
   });
+
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   // const { write, isLoading, isSuccess } = useContractWrite(config);
   // const { data: hash, writeContract} = useWriteContract();
@@ -39,10 +42,21 @@ export default function CreateEvent() {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
-    setForm((prev: any) => ({
+    setForm((prev) => ({
       ...prev,
       image: file,
     }));
+
+    // Create preview URL
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreview(null);
+    }
   };
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
@@ -79,54 +93,192 @@ export default function CreateEvent() {
   };
 
   return (
-    <div className="p-6 max-w-xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4">Create Event</h2>
-      <form onSubmit={handleSubmit} className="grid gap-4">
-        {(
-          [
-            ["name", "Event Name"],
-            ["description", "Description"],
-            ["cost", "Ticket Price (ETH)", "number"],
-            ["maxTickets", "Max Tickets", "number"],
-            ["date", "Date"],
-            ["time", "Time"],
-            ["location", "Location"],
-          ] as [keyof typeof form, string, string?][]
-        ).map(([name, label, type = "text"]) => (
-          <input
-            key={name}
-            name={name}
-            type={type}
-            placeholder={label}
-            value={form[name]}
-            onChange={handleChange}
-            className="border px-3 py-2 rounded"
-            required
-          />
-        ))}
-        {/* <label htmlFor="image">Event Image (Poster or Banner)</label>
-        <input
-          type="file"
-          id="image"
-          name="image"
-          accept="image/*"
-          onChange={handleImageChange}
-        /> */}
-        <button
-          type="submit"
-          className="bg-blue-600 text-white py-2 px-4 rounded disabled:opacity-50"
-          disabled={isConfirmed || isConfirming || !isConnected}
-        >
-          {isConfirming ? "Creating..." : "Create Event"}
-        </button>
+    <>
+      <Navbar />
+      <div className="container">
+        <div className="page-header">
+          <h1>Create New Event</h1>
+          <p className="page-subtitle">
+            Fill in the details below to create your event and start selling tickets on the blockchain
+          </p>
+        </div>
 
-        {isConfirmed && (
-          <>
-            {hash && <div>Transaction Hash: {hash}</div>}
-            <p className="text-green-600">Event created successfully!</p>
-          </>
-        )}
-      </form>
-    </div>
+        <div style={{ maxWidth: '100%', margin: '0 auto' }}>
+          <form onSubmit={handleSubmit} className="create-event-form">
+            <div className="form-grid">
+              {/* Event Name */}
+              <div className="form-group">
+                <label htmlFor="name">Event Name *</label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  placeholder="Enter event name"
+                  value={form.name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              {/* Description */}
+              <div className="form-group">
+                <label htmlFor="description">Description *</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  placeholder="Describe your event"
+                  value={form.description}
+                  onChange={handleChange}
+                  rows={4}
+                  required
+                />
+              </div>
+
+              {/* Image Upload */}
+              <div className="form-group">
+                <label htmlFor="image">Event Image</label>
+                <div className="image-upload-container">
+                  <input
+                    type="file"
+                    id="image"
+                    name="image"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="image-input"
+                  />
+                  <label htmlFor="image" className="image-upload-label">
+                    {imagePreview ? (
+                      <div className="image-preview">
+                        <img src={imagePreview} alt="Event preview" />
+                        <div className="image-overlay">
+                          <span>📷 Change Image</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="image-placeholder">
+                        <span className="upload-icon">📷</span>
+                        <span>Upload Event Image</span>
+                        <small>JPG, PNG, GIF up to 10MB</small>
+                      </div>
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              {/* Cost, Max Tickets, and Date Row */}
+              <div className="form-row-three">
+                <div className="form-group">
+                  <label htmlFor="cost">Ticket Price (ETH) *</label>
+                  <input
+                    id="cost"
+                    name="cost"
+                    type="number"
+                    step="0.001"
+                    min="0"
+                    placeholder="0.01"
+                    value={form.cost}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="maxTickets">Max Tickets *</label>
+                  <input
+                    id="maxTickets"
+                    name="maxTickets"
+                    type="number"
+                    min="1"
+                    placeholder="100"
+                    value={form.maxTickets}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="date">Event Date *</label>
+                  <input
+                    id="date"
+                    name="date"
+                    type="date"
+                    value={form.date}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Time and Location Row */}
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="time">Event Time *</label>
+                  <input
+                    id="time"
+                    name="time"
+                    type="time"
+                    value={form.time}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="location">Location *</label>
+                  <input
+                    id="location"
+                    name="location"
+                    type="text"
+                    placeholder="Enter event location"
+                    value={form.location}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Wallet Connection Warning */}
+            {!isConnected && (
+              <div className="wallet-warning">
+                <span>⚠️</span>
+                <p>Please connect your wallet to create an event</p>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className="create-event-btn"
+              disabled={isConfirmed || isConfirming || !isConnected}
+            >
+              {isConfirming ? (
+                <>
+                  <span className="loading-spinner"></span>
+                  Creating Event...
+                </>
+              ) : (
+                <>
+                  <span>🎫</span>
+                  Create Event
+                </>
+              )}
+            </button>
+
+            {/* Success Message */}
+            {isConfirmed && (
+              <div className="success-message">
+                <div className="success-icon">✅</div>
+                <h3>Event Created Successfully!</h3>
+                <p>Your event has been created on the blockchain.</p>
+                {hash && (
+                  <div className="transaction-hash">
+                    <small>Transaction Hash:</small>
+                    <code>{hash}</code>
+                  </div>
+                )}
+              </div>
+            )}
+          </form>
+        </div>
+      </div>
+    </>
   );
 }
