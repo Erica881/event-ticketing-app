@@ -6,7 +6,7 @@ export interface Event {
   location: string;
   description: string;
   price: number; // 0 for free events
-  cost: string; // ETH price as string
+  // cost: string; // ETH price as string
   maxTickets: number;
   isFree: boolean;
   imageUrl?: string; // Optional image URL

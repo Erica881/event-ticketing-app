@@ -3,8 +3,10 @@ import React, { useState, useMemo, useEffect } from "react";
 import EventItem from "./EventItem";
 import EventFilter from "./EventFilter";
 import { Event } from "../../interfaces";
-import { useAccount, useReadContract } from "wagmi";
+import { useReadContract } from "wagmi";
 import { nftTicAbi } from "../../abi/NFTTic"; // You must provide the ABI file
+// import { contractInfo } from "../../pages/util";
+import { contractInfo } from "../../pages/util"; // Importing contract info from util.ts
 
 // Sample Data - Replace with actual data fetching
 const sampleEvents: Event[] = [
@@ -17,7 +19,7 @@ const sampleEvents: Event[] = [
     description:
       "Join us for the biggest tech conference of the year. Learn about the latest trends in AI, Blockchain, and Web3.",
     price: 0,
-    cost: "0",
+    // cost: "0",
     maxTickets: 500,
     isFree: true,
     imageUrl:
@@ -32,7 +34,7 @@ const sampleEvents: Event[] = [
     description:
       "An outdoor music festival featuring top artists. Enjoy live music, food trucks, and more.",
     price: 75,
-    cost: "0.075",
+    // cost: "0.075",
     maxTickets: 1000,
     isFree: false,
     imageUrl:
@@ -47,7 +49,7 @@ const sampleEvents: Event[] = [
     description:
       "Explore stunning artworks from local and international artists. A must-see for art lovers.",
     price: 20,
-    cost: "0.02",
+    // cost: "0.02",
     maxTickets: 200,
     isFree: false,
     imageUrl:
@@ -56,8 +58,8 @@ const sampleEvents: Event[] = [
 ];
 
 const EventListPage: React.FC = () => {
-  // const { events, isLoading, error } = useEvents(); // Placeholder for data fetching
-  const CONTRACT_ADDRESS = "0xc753037F5C01FfA0864aaf499C93D6Fa221613C3"; // Replace with actual deployed contract address
+  const CONTRACT_ADDRESS = contractInfo.address; // Use the address from util.ts
+  const ABI = contractInfo.abi; // Use the ABI from util.ts
 
   const [events, setEvents] = useState<Event[]>(sampleEvents); // Using sample data
   const [realEvents, setRealEvents] = useState<Event[]>(); // Using sample data
@@ -66,15 +68,15 @@ const EventListPage: React.FC = () => {
 
   const [filter, setFilter] = useState<"all" | "free" | "payable">("all");
   const contract_details = useReadContract({
-    abi: nftTicAbi,
-    address: CONTRACT_ADDRESS,
-    functionName: "getAllOccasions",
+    abi: ABI,
+    address: CONTRACT_ADDRESS as `0x${string}`,
+    functionName: "getAllEvents",
   });
 
   useEffect(() => {
     console.log(
-      "Contract ABI getAllOccasions:",
-      nftTicAbi.find((f) => f.name === "getAllOccasions")
+      "Contract ABI getAllEvents:",
+      nftTicAbi.find((f) => f.name === "getAllEvents")
     );
     console.log("Calling contract at:", CONTRACT_ADDRESS);
 
@@ -89,12 +91,13 @@ const EventListPage: React.FC = () => {
           date: item.date,
           time: item.time,
           location: item.location,
-          description: item.description,
+          description: item.desc,
           price: Number(item.cost), //wei value
-          cost: item.cost,
+          // cost: item.cost,
           maxTickets: Number(item.maxTickets || 100),
           isFree: item.cost === "0",
           imageUrl:
+            item.imageUrl ||
             "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80", // fallback image
         })
       );

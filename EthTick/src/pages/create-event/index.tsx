@@ -6,10 +6,14 @@ import {
   useWaitForTransactionReceipt,
 } from "wagmi";
 import { parseEther } from "viem";
-import { nftTicAbi } from "../../abi/NFTTic"; // You must provide the ABI file
 import Navbar from "../Navbar";
+import { contractInfo } from "../../pages/util"; // Importing contract info from util.ts
 
-const CONTRACT_ADDRESS = "0xc753037F5C01FfA0864aaf499C93D6Fa221613C3"; // Replace with actual deployed contract address
+// const CONTRACT_ADDRESS = "0xc753037F5C01FfA0864aaf499C93D6Fa221613C3"; // Replace with actual deployed contract address
+// const CONTRACT_ADDRESS = "0x77DAfbB17F8BB50ae33FFc5a84bfDb34b097ae11";
+// const CONTRACT_ADDRESS = "0x1a9e96c1d5de74b0b0a60834237dd90ff842130a"; // Replace with actual deployed contract address
+const CONTRACT_ADDRESS = contractInfo.address; // Use the address from util.ts
+const ABI = contractInfo.abi; // Use the ABI from util.ts
 
 export default function CreateEvent() {
   const { address, isConnected } = useAccount();
@@ -38,7 +42,6 @@ export default function CreateEvent() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     // write?.();
@@ -52,8 +55,8 @@ export default function CreateEvent() {
         return;
       }
       const listCreation = await writeContractAsync({
-        abi: nftTicAbi,
-        address: CONTRACT_ADDRESS,
+        abi: ABI,
+        address: CONTRACT_ADDRESS as `0x${string}`,
         functionName: "list",
         args: [
           form.name,
@@ -79,11 +82,12 @@ export default function CreateEvent() {
         <div className="page-header">
           <h1>Create New Event</h1>
           <p className="page-subtitle">
-            Fill in the details below to create your event and start selling tickets on the blockchain
+            Fill in the details below to create your event and start selling
+            tickets on the blockchain
           </p>
         </div>
 
-        <div style={{ maxWidth: '100%', margin: '0 auto' }}>
+        <div style={{ maxWidth: "100%", margin: "0 auto" }}>
           <form onSubmit={handleSubmit} className="create-event-form">
             <div className="form-grid">
               {/* Event Name */}
@@ -127,9 +131,13 @@ export default function CreateEvent() {
                 />
                 {form.imageUrl && (
                   <div className="image-preview-url">
-                    <img src={form.imageUrl} alt="Event preview" onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }} />
+                    <img
+                      src={form.imageUrl}
+                      alt="Event preview"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
                   </div>
                 )}
               </div>
