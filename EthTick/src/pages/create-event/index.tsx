@@ -60,12 +60,14 @@ export default function CreateEvent() {
         functionName: "list",
         args: [
           form.name,
-          form.description,
           Number(form.cost || "0"),
           Number(form.maxTickets),
           form.date,
           form.time,
           form.location,
+          form.imageUrl || "", // Optional image URL
+          form.description,
+          Number(form.cost) === 0, // isFree
         ],
       });
 
