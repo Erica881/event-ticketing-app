@@ -60,12 +60,12 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => {
           <i className="event-icon">📍</i> {event.location}
         </p>
         <p className="event-price">
-          <i className="event-icon">{event.isFree ? "🎁" : "💰"}</i>
-          {event.isFree ? "Free Entry" : `$${event.price.toFixed(2)}`}
+          <i className="event-icon">{(event.isFree || event.price === 0) ? "🎁" : "💰"}</i>
+          {(event.isFree || event.price === 0) ? "Free Entry" : `${event.price} wei`}
         </p>
         <p className="event-description">{event.description}</p>
 
-        {!event.isFree && (
+        {!(event.isFree || event.price === 0) && (
           <div className="ticket-quantity">
             <button
               className="quantity-btn"
@@ -87,11 +87,11 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => {
       </div>
 
       <button className="buy-button" onClick={handleBuyClick}>
-        {event.isFree
+        {(event.isFree || event.price === 0)
           ? "Register Now"
-          : `Purchase Ticket${quantity > 1 ? "s" : ""} • $${(
+          : `Purchase Ticket${quantity > 1 ? "s" : ""} • ${(
               event.price * quantity
-            ).toFixed(2)}`}
+            )} wei`}
       </button>
     </div>
   );

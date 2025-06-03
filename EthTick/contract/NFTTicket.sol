@@ -3,36 +3,46 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-contract TokenMaster is ERC721 {
+contract NFTTic is ERC721 {
     address public owner;
-    uint256 public totalOccasions;
+    uint256 public totalEvents;
+    //total supply for the NFT minted
     uint256 public totalSupply;
 
-    struct Occasion {
+    struct Event {
         uint256 id;
         string name;
-        uint256 cost;
-        uint256 tickets;
-        uint256 maxTickets;
         string date;
         string time;
         string location;
+        string desc;
+        uint256 cost;
+        uint256 maxTickets;
+        bool isFree;
+        string imageUrl;
+        bool isCompleted;
+        bool isCancelled;
+        address organizer;
     }
 
-    mapping(uint256 => Occasion) occasions;
-    mapping(uint256 => mapping(address => bool)) public hasBought;
-    mapping(uint256 => mapping(uint256 => address)) public seatTaken;
-    mapping(uint256 => uint256[]) seatsTaken;
+    mapping(uint256 => Event) events;
+    //return the amount of the ticket bough from the buyer to the event id
+    mapping(uint256 => mapping(address => uint256)) public ticketsBought;
+    mapping(uint256 => uint256) public escrowBalance;
+
+    event EventListed(uint256 id, string name, uint256 cost);
+    // event TicketMinted(uint256 id, address buyer);
+    event TicketMinted(uint256 eventId, uint256 tokenId, address buyer, uint256 cost);
+    event EventCompleted(uint256 id);
+    event EventCancelled(uint256 id);
+    event RefundClaimed(uint256 id, address buyer, uint256 amount);
 
     modifier onlyOwner() {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "Not contract owner");
         _;
     }
 
-    constructor(
-        string memory _name,
-        string memory _symbol
-    ) ERC721(_name, _symbol) {
+    constructor(string memory _name, string memory _symbol) ERC721(_name, _symbol) {
         owner = msg.sender;
     }
 
@@ -42,55 +52,151 @@ contract TokenMaster is ERC721 {
         uint256 _maxTickets,
         string memory _date,
         string memory _time,
-        string memory _location
-    ) public onlyOwner {
-        totalOccasions++;
-        occasions[totalOccasions] = Occasion(
-            totalOccasions,
+        string memory _location,
+        string memory _imageUrl,
+        string memory _desc,
+        bool _isFree
+    ) public {
+        totalEvents++;
+        events[totalEvents] = Event(
+            totalEvents,
             _name,
-            _cost,
-            _maxTickets,
-            _maxTickets,
             _date,
             _time,
-            _location
+            _location,
+            _desc,
+            _cost,
+            _maxTickets,
+            _isFree,     
+            _imageUrl,
+            false,
+            false,
+            msg.sender
         );
+
+        emit EventListed(totalEvents, _name, _cost);
+    }
+    //input organisor's address for check the created
+    function getEventsByOrganizer(address _organizer) public view returns (Event[] memory) {
+        uint256 count = 0;
+
+        // First pass: count how many events are by this organizer
+        for (uint256 i = 1; i <= totalEvents; i++) {
+            if (events[i].organizer == _organizer) {
+                count++;
+            }
+        }
+
+        // Second pass: collect the events
+        Event[] memory result = new Event[](count);
+        uint256 index = 0;
+
+        for (uint256 i = 1; i <= totalEvents; i++) {
+            if (events[i].organizer == _organizer) {
+                result[index] = events[i];
+                index++;
+            }
+        }
+
+        return result;
     }
 
-    function mint(uint256 _id, uint256 _seat) public payable {
-        // Require that _id is not 0 or less than total occasions...
-        require(_id != 0);
-        require(_id <= totalOccasions);
 
-        // Require that ETH sent is greater than cost...
-        require(msg.value >= occasions[_id].cost);
+    //allow buy multiple ticket per event
+    function mint(uint256 _id, uint256 quantity) public payable {
+        Event storage eventInfo = events[_id];
+        
+        require(_id != 0 && _id <= totalEvents, "Invalid event ID");
+        require(quantity > 0, "Invalid quantity");
+        require(eventInfo.maxTickets >= quantity, "Not enough tickets");
+        require(msg.value == eventInfo.cost * quantity, "Please pay exact amount");
+        require(!eventInfo.isCancelled, "Event was cancelled");
 
-        // Require that the seat is not taken, and the seat exists...
-        require(seatTaken[_id][_seat] == address(0));
-        require(_seat <= occasions[_id].maxTickets);
-
-        occasions[_id].tickets -= 1; // <-- Update ticket count
-
-        hasBought[_id][msg.sender] = true; // <-- Update buying status
-        seatTaken[_id][_seat] = msg.sender; // <-- Assign seat
-
-        seatsTaken[_id].push(_seat); // <-- Update seats currently taken
-
-        totalSupply++;
-
-        _safeMint(msg.sender, totalSupply);
+        // Update state
+        // occ.tickets--;
+        eventInfo.maxTickets -= quantity;
+        escrowBalance[_id] += msg.value;
+        ticketsBought[_id][msg.sender] += quantity;
+        for (uint256 i = 0; i < quantity; i++) {
+                totalSupply++;
+                uint tokenId = totalSupply;
+                _safeMint(msg.sender, tokenId);
+                emit TicketMinted(_id, tokenId, msg.sender, msg.value);
+        }
     }
 
-    function getOccasion(uint256 _id) public view returns (Occasion memory) {
-        return occasions[_id];
+
+    function completeEvent(uint256 _id) public {
+        Event storage occ = events[_id];
+        require(msg.sender == occ.organizer, "Not organizer");
+        require(!occ.isCancelled, "Already cancelled");
+        require(!occ.isCompleted, "Already completed");
+
+        occ.isCompleted = true;
+        uint256 amount = escrowBalance[_id];
+        escrowBalance[_id] = 0;
+
+        (bool success, ) = occ.organizer.call{value: amount}("");
+        require(success, "Transfer failed");
+
+        emit EventCompleted(_id);
     }
 
-    function getSeatsTaken(uint256 _id) public view returns (uint256[] memory) {
-        return seatsTaken[_id];
+    function cancelEvent(uint256 _id) public {
+        Event storage occ = events[_id];
+        require(msg.sender == occ.organizer, "Not organizer");
+        require(!occ.isCompleted, "Already completed");
+
+        occ.isCancelled = true;
+        claimRefund(_id);
+
+        emit EventCancelled(_id);
     }
 
-    function withdraw() public onlyOwner {
-        (bool success, ) = owner.call{value: address(this).balance}("");
-        require(success);
+    function claimRefund(uint256 _id) public {
+        Event storage occ = events[_id];
+        require(occ.isCancelled, "Event is not cancelled");
+
+        uint256 quantity = ticketsBought[_id][msg.sender];
+        require(quantity > 0, "No tickets to refund");
+
+        // Calculate refund and update state
+        uint256 refundAmount = occ.cost * quantity;
+        ticketsBought[_id][msg.sender] = 0;
+        escrowBalance[_id] -= refundAmount;
+
+        // Transfer funds
+        (bool success, ) = msg.sender.call{value: refundAmount}("");
+        require(success, "Refund failed");
+
+        emit RefundClaimed(_id, msg.sender, refundAmount);
+    }
+
+
+    function getAllEvents() public view returns (Event[] memory) {
+        Event[] memory allEvents = new Event[](totalEvents);
+        for (uint256 i = 1; i <= totalEvents; i++) {
+            allEvents[i - 1] = events[i];
+        }
+        return allEvents;
+    }
+
+    function getRangedEvents(uint256 start, uint256 end) public view returns (Event[] memory) {
+        require(end >= start, "Invalid range");
+        require(end <= totalEvents, "Out of range");
+
+        Event[] memory pagedEvents = new Event[](end - start + 1);
+        uint256 index = 0;
+
+        for (uint256 i = start; i <= end; i++) {
+            pagedEvents[index] = events[i];
+            index++;
+        }
+
+        return pagedEvents;
+    }
+
+    function getEscrowBalance(uint256 _id) public view returns (uint256) {
+        return escrowBalance[_id];
     }
 }
