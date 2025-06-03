@@ -1,101 +1,29 @@
-// import { useState } from "react";
-// import { useAccount, useWriteContract } from "wagmi";
-// import { parseEther } from "viem";
-// import { NFTTicAbi } from "../../abi/NFTTic"; // You must provide the ABI file
+"use client";
+import { useState } from "react";
+import {
+  useAccount,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+} from "wagmi";
+import { parseEther } from "viem";
+import Navbar from "../Navbar";
+import { contractInfo } from "../../pages/util"; // Importing contract info from util.ts
 
 // const CONTRACT_ADDRESS = "0xc753037F5C01FfA0864aaf499C93D6Fa221613C3"; // Replace with actual deployed contract address
+// const CONTRACT_ADDRESS = "0x77DAfbB17F8BB50ae33FFc5a84bfDb34b097ae11";
+// const CONTRACT_ADDRESS = "0x1a9e96c1d5de74b0b0a60834237dd90ff842130a"; // Replace with actual deployed contract address
+const CONTRACT_ADDRESS = contractInfo.address; // Use the address from util.ts
+const ABI = contractInfo.abi; // Use the ABI from util.ts
 
-// export default function CreateEvent() {
-//   const { address, isConnected } = useAccount();
+export default function CreateEvent() {
+  const { address, isConnected } = useAccount();
+  const { data: hash, writeContractAsync } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
 
-//   const [form, setForm] = useState({
-//     name: "",
-//     description: "",
-//     cost: "",
-//     maxTickets: "",
-//     date: "",
-//     time: "",
-//     location: "",
-//   });
-
-//   const { config } = useWriteContract({
-//     address: CONTRACT_ADDRESS,
-//     abi,
-//     functionName: "list",
-//     args: [
-//       form.name,
-//       form.description,
-//       parseEther(form.cost || "0"),
-//       Number(form.maxTickets),
-//       form.date,
-//       form.time,
-//       form.location,
-//     ],
-//     enabled: isConnected && !!form.name && !!form.maxTickets,
-//   });
-
-//   const { write, isLoading, isSuccess } = useContractWrite(config);
-
-//   const handleChange = (e) => {
-//     const { name, value } = e.target;
-//     setForm((prev) => ({ ...prev, [name]: value }));
-//   };
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     write?.();
-//   };
-
-//   return (
-//     <div className="p-6 max-w-xl mx-auto">
-//       <h2 className="text-2xl font-bold mb-4">Create Event</h2>
-//       <form onSubmit={handleSubmit} className="grid gap-4">
-//         {[
-//           ["name", "Event Name"],
-//           ["description", "Description"],
-//           ["cost", "Ticket Price (ETH)", "number"],
-//           ["maxTickets", "Max Tickets", "number"],
-//           ["date", "Date"],
-//           ["time", "Time"],
-//           ["location", "Location"],
-//         ].map(([name, label, type = "text"]) => (
-//           <input
-//             key={name}
-//             name={name}
-//             type={type}
-//             placeholder={label}
-//             value={form[name]}
-//             onChange={handleChange}
-//             className="border px-3 py-2 rounded"
-//             required
-//           />
-//         ))}
-
-//         <button
-//           type="submit"
-//           className="bg-blue-600 text-white py-2 px-4 rounded disabled:opacity-50"
-//           disabled={!write || isLoading}
-//         >
-//           {isLoading ? "Creating..." : "Create Event"}
-//         </button>
-
-//         {isSuccess && (
-//           <p className="text-green-600">Event created successfully!</p>
-//         )}
-//       </form>
-//     </div>
-//   );
-// }
-
-// pages/create-event.tsx
-
-"use client";
-
-import React, { useState } from "react";
-import Navbar from "../Navbar"; // Import the Navbar component
-
-export default function CreateEventForm() {
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState({
     name: "",
     description: "",
     cost: "",
@@ -103,142 +31,231 @@ export default function CreateEventForm() {
     date: "",
     time: "",
     location: "",
-    isFree: false,
+    imageUrl: "",
   });
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-      ...(name === "isFree" && checked ? { cost: "" } : {}),
-    }));
+  // const { write, isLoading, isSuccess } = useContractWrite(config);
+  // const { data: hash, writeContract} = useWriteContract();
+
+  const handleChange = (e: { target: { name: any; value: any } }) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
+    // write?.();
+    try {
+      if (!isConnected) {
+        alert("Please connect your wallet first.");
+        return;
+      }
+      if (!writeContractAsync) {
+        alert("Contract write function is not available.");
+        return;
+      }
+      const listCreation = await writeContractAsync({
+        abi: ABI,
+        address: CONTRACT_ADDRESS as `0x${string}`,
+        functionName: "list",
+        args: [
+          form.name,
+          form.description,
+          Number(form.cost || "0"),
+          Number(form.maxTickets),
+          form.date,
+          form.time,
+          form.location,
+        ],
+      });
 
-    // Convert cost to 0 if free
-    const finalData = {
-      ...formData,
-      cost: formData.isFree ? "0" : formData.cost,
-    };
-
-    console.log("Event data to submit:", finalData);
-
-    // TODO: Interact with smart contract here
+      console.log("Transaction sent:", listCreation);
+    } catch (error) {
+      console.error("Error creating event:", error);
+    }
   };
 
   return (
-    <React.Fragment>
+    <>
       <Navbar />
       <div className="container">
         <div className="page-header">
-          <h1>Create a New Event</h1>
+          <h1>Create New Event</h1>
           <p className="page-subtitle">
-            Fill in the details below to list your event on the platform.
+            Fill in the details below to create your event and start selling
+            tickets on the blockchain
           </p>
         </div>
-        <form
-          onSubmit={handleSubmit}
-          className="create-event-form"
-        >
-        <label htmlFor="name">Event Name</label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          placeholder="e.g., Annual Tech Summit"
-          value={formData.name}
-          onChange={handleChange}
-          required
-        />
 
-        <label htmlFor="description">Event Description</label>
-        <textarea
-          id="description"
-          name="description"
-          placeholder="Tell us more about your event..."
-          value={formData.description}
-          onChange={handleChange}
-          required
-        />
+        <div style={{ maxWidth: "100%", margin: "0 auto" }}>
+          <form onSubmit={handleSubmit} className="create-event-form">
+            <div className="form-grid">
+              {/* Event Name */}
+              <div className="form-group">
+                <label htmlFor="name">Event Name *</label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  placeholder="Enter event name"
+                  value={form.name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-        <div className="form-checkbox-group">
-          <input
-            type="checkbox"
-            id="isFree"
-            name="isFree"
-            checked={formData.isFree}
-            onChange={handleChange}
-          />
-          <label htmlFor="isFree" className="checkbox-label">Is this event free?</label>
+              {/* Description */}
+              <div className="form-group">
+                <label htmlFor="description">Description *</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  placeholder="Describe your event"
+                  value={form.description}
+                  onChange={handleChange}
+                  rows={4}
+                  required
+                />
+              </div>
+
+              {/* Image URL */}
+              <div className="form-group">
+                <label htmlFor="imageUrl">Event Image URL</label>
+                <input
+                  id="imageUrl"
+                  name="imageUrl"
+                  type="url"
+                  placeholder="https://example.com/image.jpg"
+                  value={form.imageUrl}
+                  onChange={handleChange}
+                />
+                {form.imageUrl && (
+                  <div className="image-preview-url">
+                    <img
+                      src={form.imageUrl}
+                      alt="Event preview"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Cost, Max Tickets, and Date Row */}
+              <div className="form-row-three">
+                <div className="form-group">
+                  <label htmlFor="cost">Ticket Price (ETH) *</label>
+                  <input
+                    id="cost"
+                    name="cost"
+                    type="number"
+                    step="0.001"
+                    min="0"
+                    placeholder="0.01"
+                    value={form.cost}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="maxTickets">Max Tickets *</label>
+                  <input
+                    id="maxTickets"
+                    name="maxTickets"
+                    type="number"
+                    min="1"
+                    placeholder="100"
+                    value={form.maxTickets}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="date">Event Date *</label>
+                  <input
+                    id="date"
+                    name="date"
+                    type="date"
+                    value={form.date}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Time and Location Row */}
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="time">Event Time *</label>
+                  <input
+                    id="time"
+                    name="time"
+                    type="time"
+                    value={form.time}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="location">Location *</label>
+                  <input
+                    id="location"
+                    name="location"
+                    type="text"
+                    placeholder="Enter event location"
+                    value={form.location}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Wallet Connection Warning */}
+            {!isConnected && (
+              <div className="wallet-warning">
+                <span>⚠️</span>
+                <p>Please connect your wallet to create an event</p>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className="create-event-btn"
+              disabled={isConfirmed || isConfirming || !isConnected}
+            >
+              {isConfirming ? (
+                <>
+                  <span className="loading-spinner"></span>
+                  Creating Event...
+                </>
+              ) : (
+                <>
+                  <span>🎫</span>
+                  Create Event
+                </>
+              )}
+            </button>
+
+            {/* Success Message */}
+            {isConfirmed && (
+              <div className="success-message">
+                <div className="success-icon">✅</div>
+                <h3>Event Created Successfully!</h3>
+                <p>Your event has been created on the blockchain.</p>
+                {hash && (
+                  <div className="transaction-hash">
+                    <small>Transaction Hash:</small>
+                    <code>{hash}</code>
+                  </div>
+                )}
+              </div>
+            )}
+          </form>
         </div>
-
-        <label htmlFor="cost">Ticket Price (ETH)</label>
-        <input
-          type="number"
-          id="cost"
-          name="cost"
-          placeholder="e.g., 0.1"
-          value={formData.cost}
-          onChange={handleChange}
-          disabled={formData.isFree}
-          required={!formData.isFree}
-          step="any"
-        />
-
-        <label htmlFor="maxTickets">Max Tickets</label>
-        <input
-          type="number"
-          id="maxTickets"
-          name="maxTickets"
-          placeholder="e.g., 100"
-          value={formData.maxTickets}
-          onChange={handleChange}
-          required
-        />
-
-        <label htmlFor="date">Event Date</label>
-        <input
-          type="date"
-          id="date"
-          name="date"
-          value={formData.date}
-          onChange={handleChange}
-          required
-        />
-
-        <label htmlFor="time">Event Time</label>
-        <input
-          type="time"
-          id="time"
-          name="time"
-          value={formData.time}
-          onChange={handleChange}
-          required
-        />
-
-        <label htmlFor="location">Location</label>
-        <input
-          type="text"
-          id="location"
-          name="location"
-          placeholder="e.g., Online or City Convention Center"
-          value={formData.location}
-          onChange={handleChange}
-          required
-        />
-
-        <button
-          type="submit"
-        >
-          Create Event
-        </button>
-      </form>
       </div>
-    </React.Fragment>
+    </>
   );
 }
