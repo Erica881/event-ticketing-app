@@ -22,7 +22,7 @@ const Navbar: React.FC = () => {
           <Link href="/my-tickets">My Tickets</Link>
         </li>
         <li>
-          <Link href="/about">About Us</Link>
+          <Link href="/AboutUs">About Us</Link>
         </li>
         <li className="wallet-menu-item">
           {" "}
