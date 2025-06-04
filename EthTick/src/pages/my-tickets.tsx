@@ -136,11 +136,6 @@ const MyTickets: NextPage = () => {
           <p className="page-subtitle">
             View and manage all your purchased event tickets
           </p>
-          {isConnected && address && (
-            <div className="wallet-address-display">
-              Connected Wallet: {formatAddress(address)}
-            </div>
-          )}
         </div>
 
         {!isConnected ? (
