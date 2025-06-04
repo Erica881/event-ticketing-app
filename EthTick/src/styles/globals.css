@@ -1,8 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
 
 body {
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   margin: 0;
   padding: 0;
   background-color: #121212; /* Dark background but not pure black for better contrast */
@@ -366,7 +366,9 @@ label {
 }
 
 /* Event Details Styling */
-.event-time, .event-location, .event-price {
+.event-time,
+.event-location,
+.event-price {
   display: flex;
   align-items: center;
   margin-bottom: 10px;
@@ -495,7 +497,7 @@ label {
   border-radius: 25px;
   outline: none;
   cursor: pointer;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   font-weight: 500;
   transition: all 0.3s ease;
 }
@@ -548,7 +550,8 @@ footer a:hover {
     margin: 0 8px;
   }
 
-  .navbar a, .navbar button {
+  .navbar a,
+  .navbar button {
     font-size: 1em;
     padding: 6px 10px;
   }
@@ -575,10 +578,12 @@ footer a:hover {
   .logo-text {
     font-size: 1.5rem;
   }
-  .navbar a, .navbar button {
+  .navbar a,
+  .navbar button {
     font-size: 0.9em;
   }
-  .wallet-connect-btn, .wallet-disconnect {
+  .wallet-connect-btn,
+  .wallet-disconnect {
     padding: 6px 10px;
     font-size: 0.85rem;
   }
@@ -591,7 +596,8 @@ footer a:hover {
   .page-subtitle {
     font-size: 0.9rem;
   }
-  button, input[type="submit"] {
+  button,
+  input[type="submit"] {
     padding: 10px 15px;
     font-size: 0.9em;
   }
@@ -691,7 +697,7 @@ input[type="time"] {
 
 input[type="date"]::-webkit-calendar-picker-indicator,
 input[type="time"]::-webkit-calendar-picker-indicator {
-    filter: invert(1); /* Makes the calendar icon white */
+  filter: invert(1); /* Makes the calendar icon white */
 }
 
 /* Create Event Form Styles */
@@ -742,7 +748,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   border-radius: 10px;
   font-size: 1.1rem;
   transition: all 0.3s ease;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   min-height: 50px;
 }
 
@@ -845,8 +851,12 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Success Message */
@@ -893,7 +903,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   background: rgba(0, 0, 0, 0.2);
   padding: 8px 12px;
   border-radius: 6px;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-size: 0.9rem;
   word-break: break-all;
   display: block;
@@ -904,16 +914,16 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   .create-event-form {
     padding: 25px;
   }
-  
+
   .form-row {
     grid-template-columns: 1fr;
     gap: 15px;
   }
-  
+
   .image-placeholder {
     padding: 30px 15px;
   }
-  
+
   .upload-icon {
     font-size: 2.5rem;
   }
@@ -923,13 +933,390 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   .create-event-form {
     padding: 20px;
   }
-  
+
   .form-grid {
     gap: 20px;
   }
-  
+
   .create-event-btn {
     padding: 15px 25px;
     font-size: 1rem;
   }
+}
+
+/* Create Event Page Styles */
+.create-event-header {
+  margin-bottom: 2rem;
+}
+
+.header-top {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+}
+
+.create-event-btn-header {
+  background: linear-gradient(135deg, #ff4d4d, #f9cb28);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.create-event-btn-header:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 77, 77, 0.4);
+  color: white;
+}
+
+.wallet-address-display {
+  background-color: #2a2a2a;
+  padding: 10px 20px;
+  border-radius: 25px;
+  border: 1px solid #444;
+  font-family: monospace;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+}
+
+/* Created Events Section */
+.created-events-section {
+  margin-top: 2rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #333;
+}
+
+.section-header h2 {
+  color: #f9cb28;
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.create-another-btn {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.create-another-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+  color: white;
+}
+
+/* Created Events List */
+.created-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.created-event-card {
+  background-color: #2a2a2a;
+  border: 2px solid #444;
+  border-radius: 12px;
+  padding: 1.2rem;
+  transition: all 0.3s ease;
+  margin-bottom: 1rem;
+}
+
+.created-event-card:hover {
+  border-color: #f9cb28;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.event-card-header {
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #444;
+}
+
+.event-card-header h3 {
+  color: #ffffff;
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.event-card-content {
+  display: flex;
+  gap: 1rem;
+  /* margin-bottom: 1rem; */
+  align-items: flex-start;
+}
+
+.event-description-box {
+  flex: 1;
+  min-width: 0;
+}
+
+.event-description-textarea {
+  width: 95%;
+  min-height: 98px;
+  max-height: 60px;
+  background-color: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: #e0e0e0;
+  font-family: "Poppins", sans-serif;
+  font-size: 0.85rem;
+  resize: none;
+  line-height: 1.3;
+  overflow-y: auto;
+}
+
+.event-description-textarea:focus {
+  outline: none;
+  border-color: #f9cb28;
+}
+
+.event-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 180px;
+  background-color: #1a1a1a;
+  padding: 0.8rem;
+  border-radius: 6px;
+  border: 1px solid #444;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.2rem 0;
+}
+
+.stat-label {
+  color: #cccccc;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.stat-value {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* Event Actions */
+.event-actions {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  padding-top: 0.5rem;
+  border-top: 1px solid #444;
+}
+
+.action-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.85rem;
+  min-width: 120px;
+}
+
+.complete-btn {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+}
+
+.complete-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+}
+
+.cancel-btn {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+}
+
+.cancel-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+}
+
+/* Event Status */
+.event-status-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-align: center;
+  width: fit-content;
+}
+
+.status-badge.completed {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+}
+
+.status-badge.cancelled {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+}
+
+.transaction-success {
+  background-color: #1a3a1a;
+  border: 1px solid #28a745;
+  border-radius: 6px;
+  padding: 0.8rem;
+}
+
+.success-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.success-icon {
+  background: #28a745;
+  color: white;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.success-indicator span:last-child {
+  color: #28a745;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.transaction-note {
+  color: #cccccc;
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.create-first-event-btn {
+  background: linear-gradient(135deg, #ff4d4d, #f9cb28);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.create-first-event-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 77, 77, 0.4);
+  color: white;
+}
+
+/* Responsive Design for Create Event Page */
+@media (max-width: 768px) {
+  .header-top {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .section-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .event-card-content {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .event-stats {
+    min-width: auto;
+  }
+
+  .event-actions {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .created-event-card {
+    padding: 1rem;
+  }
+
+  .action-btn {
+    flex: 1;
+    text-align: center;
+  }
+
+  .event-actions {
+    flex-direction: column;
+  }
+}
+
+/* Loading and Error States */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  background-color: #2a2a2a;
+  border-radius: 12px;
+  margin: 2rem 0;
+}
+
+.loading-state p {
+  color: #cccccc;
+  margin-top: 1rem;
+  font-size: 1.1rem;
+}
+
+.error-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background-color: #3a1a1a;
+  border: 1px solid #dc3545;
+  border-radius: 12px;
+  margin: 2rem 0;
+}
+
+.error-state p {
+  color: #dc3545;
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 500;
 }

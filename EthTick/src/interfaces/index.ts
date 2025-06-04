@@ -25,3 +25,14 @@ export interface User {
   email: string;
   // Add other user properties if needed
 }
+
+export interface CreateEventByOrganiser {
+  name: string;
+  description: string;
+  cost: string; // ETH price as string
+  maxTickets: number;
+  date: string; // YYYY-MM-DD format
+  time: string; // HH:mm format
+  location: string;
+  imageUrl?: string; // Optional image URL
+}

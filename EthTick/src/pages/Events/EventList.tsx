@@ -108,16 +108,6 @@ const EventListPage: React.FC = () => {
     }
   }, [contract_details.data, contract_details.error]);
 
-  // const filteredEvents = useMemo(() => {
-  //   if (filter === "free") {
-  //     return events.filter((event) => event.isFree);
-  //   }
-  //   if (filter === "payable") {
-  //     return events.filter((event) => !event.isFree);
-  //   }
-  //   return events;
-  // }, [events, filter]);
-
   const filteredEvents = useMemo(() => {
     const combined = [...events, ...(realEvents || [])];
 
@@ -146,7 +136,7 @@ const EventListPage: React.FC = () => {
   return (
     <div className="container">
       <div className="page-header">
-        <h1>Discover Amazing Events</h1>
+        <h1>D iscover Amazing Events</h1>
         <p className="page-subtitle">
           Find and book tickets for the best events in your area
         </p>
