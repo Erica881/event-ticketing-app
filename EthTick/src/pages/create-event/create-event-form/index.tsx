@@ -139,7 +139,7 @@ export default function CreateEventForm() {
               {/* Cost, Max Tickets, and Date Row */}
               <div className="form-row-three">
                 <div className="form-group">
-                  <label htmlFor="cost">Ticket Price (ETH) *</label>
+                  <label htmlFor="cost">Ticket Price (WEI) *</label>
                   <input
                     id="cost"
                     name="cost"
