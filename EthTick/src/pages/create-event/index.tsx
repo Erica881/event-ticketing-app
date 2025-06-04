@@ -158,6 +158,7 @@ export default function CreateEvent() {
         return;
       }
 
+
       console.log("Cancelling event:", eventId);
       console.log("Event ID as BigInt:", BigInt(eventId));
       
@@ -166,6 +167,7 @@ export default function CreateEvent() {
         address: contractInfo.address as `0x${string}`,
         functionName: "cancelEvent",
         args: [BigInt(eventId)],
+
       });
 
       console.log("Transaction sent successfully:", tx);
