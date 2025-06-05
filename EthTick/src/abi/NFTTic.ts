@@ -1,4 +1,4 @@
-export const nftTicAbi =[
+export const nftTicAbi = [
 	{
 		"inputs": [
 			{
@@ -755,11 +755,6 @@ export const nftTicAbi =[
 				"internalType": "string",
 				"name": "_desc",
 				"type": "string"
-			},
-			{
-				"internalType": "bool",
-				"name": "_isFree",
-				"type": "bool"
 			}
 		],
 		"name": "list",

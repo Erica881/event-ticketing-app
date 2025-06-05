@@ -59,7 +59,6 @@ export default function CreateEventForm() {
           form.location,
           form.imageUrl || "", // Optional image URL
           form.description,
-          Number(form.cost) === 0, // isFree
         ],
       });
 
