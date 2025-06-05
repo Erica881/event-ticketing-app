@@ -19,7 +19,7 @@ const Navbar: React.FC = () => {
           <Link href="/create-event">Create Event</Link>
         </li>
         <li>
-          <Link href="/my-tickets">My Tickets</Link>
+          <Link href="/myticket/my-tickets">My Tickets</Link>
         </li>
         <li>
           <Link href="/AboutUs">About Us</Link>

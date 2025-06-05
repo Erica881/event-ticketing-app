@@ -3,10 +3,10 @@
 import React, { useState, useEffect } from "react";
 import type { NextPage } from "next";
 import Head from "next/head";
-import Navbar from "./Navbar";
+import Navbar from "../Navbar";
 import { useAccount, useReadContract } from "wagmi";
-import { Ticket } from "../interfaces";
-import { contractInfo } from "./util";
+import { Ticket } from "../../interfaces";
+import { contractInfo } from "../util";
 
 // Extended ticket interface with blockchain data
 interface MyTicket extends Ticket {
