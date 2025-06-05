@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { Event } from "../../interfaces";
 // import { useAuth } from "../../contexts/AuthContext"; // Assuming similar context or hook
 import { useRouter } from "next/router"; // Using next/router
+import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
+import { contractInfo } from "../util";
+import { parseEther } from "viem";
 
 interface EventItemProps {
   event: Event;
@@ -9,19 +12,111 @@ interface EventItemProps {
 
 const EventItem: React.FC<EventItemProps> = ({ event }) => {
   // const { isAuthenticated } = useAuth(); // Placeholder for auth
-  const isAuthenticated = true; // Replace with actual auth check
+  const { address, isConnected } = useAccount();
   const router = useRouter();
 
-  const handleBuyClick = () => {
-    if (!isAuthenticated) {
-      router.push("/login"); // Or your login page
+  const [quantity, setQuantity] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Wagmi hooks for contract interaction
+  const { writeContract, data: hash, error, isPending } = useWriteContract();
+  
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
+
+  const handleBuyClick = async () => {
+    if (!isConnected || !address) {
+      alert("Please connect your wallet first!");
       return;
     }
-    // TODO: Implement ticket purchase logic
-    alert("Purchase functionality will be implemented soon!");
+
+    // Validate event data
+    if (!event.id || isNaN(Number(event.id))) {
+      alert("Invalid event ID. Please refresh the page and try again.");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      
+      // For free events, set quantity to 1 and cost to 0
+      const ticketQuantity = (event.isFree || event.price === 0) ? 1 : quantity;
+      const totalCost = BigInt(event.price) * BigInt(ticketQuantity);
+      
+      console.log('Purchasing tickets:', {
+        eventId: event.id,
+        eventIdAsNumber: Number(event.id),
+        quantity: ticketQuantity,
+        totalCost: totalCost.toString(),
+        isFree: event.isFree || event.price === 0,
+        contractAddress: contractInfo.address
+      });
+
+      // Validate that we have enough tickets available
+      if (event.maxTickets && event.maxTickets < ticketQuantity) {
+        alert(`Only ${event.maxTickets} tickets available for this event.`);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Call the mint function from the smart contract
+      await writeContract({
+        address: contractInfo.address as `0x${string}`,
+        abi: contractInfo.abi,
+        functionName: 'mint',
+        args: [BigInt(event.id), BigInt(ticketQuantity)],
+        value: totalCost,
+      });
+
+    } catch (err) {
+      console.error('Transaction failed:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      
+      // Provide more specific error messages
+      if (errorMessage.includes('Invalid event ID')) {
+        alert('This event does not exist in the smart contract. Please refresh and try again.');
+      } else if (errorMessage.includes('Not enough tickets')) {
+        alert('Not enough tickets available for this event.');
+      } else if (errorMessage.includes('Please pay exact amount')) {
+        alert('Payment amount is incorrect. Please try again.');
+      } else if (errorMessage.includes('Event was cancelled')) {
+        alert('This event has been cancelled.');
+      } else {
+        alert(`Transaction failed: ${errorMessage}`);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const [quantity, setQuantity] = useState(1);
+  // Show success message when transaction is confirmed
+  React.useEffect(() => {
+    if (isConfirmed && address) {
+      const ticketQuantity = (event.isFree || event.price === 0) ? 1 : quantity;
+      const message = (event.isFree || event.price === 0)
+        ? `Successfully registered for ${event.name}!`
+        : `Successfully purchased ${ticketQuantity} ticket${ticketQuantity > 1 ? 's' : ''} for ${event.name}!`;
+      
+      // Track the purchase in localStorage for My Tickets page
+      const purchasedEvents = JSON.parse(localStorage.getItem(`purchased_events_${address}`) || '[]');
+      if (!purchasedEvents.includes(event.id)) {
+        purchasedEvents.push(event.id);
+        localStorage.setItem(`purchased_events_${address}`, JSON.stringify(purchasedEvents));
+      }
+      
+      alert(message);
+    }
+  }, [isConfirmed, quantity, event.name, event.isFree, event.price, event.id, address]);
+
+  // Show error message if transaction fails
+  React.useEffect(() => {
+    if (error) {
+      console.error('Contract error:', error);
+      alert(`Transaction failed: ${error.message}`);
+    }
+  }, [error]);
 
   const handleQuantityChange = (change: number) => {
     const newQuantity = quantity + change;
@@ -86,12 +181,24 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => {
         )}
       </div>
 
-      <button className="buy-button" onClick={handleBuyClick}>
-        {(event.isFree || event.price === 0)
-          ? "Register Now"
-          : `Purchase Ticket${quantity > 1 ? "s" : ""} • ${(
-              event.price * quantity
-            )} wei`}
+      <button
+        className="buy-button"
+        onClick={handleBuyClick}
+        disabled={isLoading || isPending || isConfirming || !isConnected}
+      >
+        {!isConnected ? (
+          "Connect Wallet"
+        ) : isLoading || isPending ? (
+          "Confirming Transaction..."
+        ) : isConfirming ? (
+          "Processing..."
+        ) : (event.isFree || event.price === 0) ? (
+          "Register Now"
+        ) : (
+          `Purchase Ticket${quantity > 1 ? "s" : ""} • ${(
+            event.price * quantity
+          )} wei`
+        )}
       </button>
     </div>
   );

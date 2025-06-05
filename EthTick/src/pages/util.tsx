@@ -9,6 +9,22 @@ export const contractInfo = {
 export const readCreatedEventByOrganisor = (organisorAddress: string) => ({
   abi: nftTicAbi,
   address: contractInfo.address as `0x${string}`,
-  functionName: "getAllEvents",
+  functionName: "getEventsByOrganizer",
   args: [organisorAddress],
+});
+
+// Helper function to check tickets bought by user for a specific event
+export const getTicketsBoughtByUser = (eventId: number, userAddress: string) => ({
+  abi: nftTicAbi,
+  address: contractInfo.address as `0x${string}`,
+  functionName: "ticketsBought",
+  args: [eventId, userAddress],
+});
+
+// Helper function to get escrow balance for an event
+export const getEventEscrowBalance = (eventId: number) => ({
+  abi: nftTicAbi,
+  address: contractInfo.address as `0x${string}`,
+  functionName: "getEscrowBalance",
+  args: [eventId],
 });

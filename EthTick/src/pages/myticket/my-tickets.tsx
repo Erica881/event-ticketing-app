@@ -4,9 +4,9 @@ import React, { useState, useEffect } from "react";
 import type { NextPage } from "next";
 import Head from "next/head";
 import Navbar from "../Navbar";
-import { useAccount, useReadContract } from "wagmi";
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { Ticket } from "../../interfaces";
-import { contractInfo } from "../util";
+import { contractInfo, getTicketsBoughtByUser } from "../util";
 
 // Extended ticket interface with blockchain data
 interface MyTicket extends Ticket {
@@ -27,52 +27,74 @@ const MyTickets: NextPage = () => {
   const [tickets, setTickets] = useState<MyTicket[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [filter, setFilter] = useState<"all" | "upcoming" | "completed" | "cancelled">("all");
+  
+  // Contract interaction hooks for refund
+  const { writeContract, data: refundHash, error: refundError, isPending: isRefundPending } = useWriteContract();
+  const { isLoading: isRefundConfirming, isSuccess: isRefundConfirmed } =
+    useWaitForTransactionReceipt({
+      hash: refundHash,
+    });
 
-  // Fetch user's tickets from the blockchain
-  const { data: userTickets, isError, isLoading: isLoadingTickets } = useReadContract({
+  // Fetch user's NFT balance (number of tickets owned)
+  const { data: userBalance, isError: balanceError, isLoading: isLoadingBalance } = useReadContract({
     abi: contractInfo.abi,
     address: contractInfo.address as `0x${string}`,
-    functionName: "getTicketsByOwner",
+    functionName: "balanceOf",
     args: [address],
     query: {
       enabled: !!address && isConnected,
     },
   });
 
+  // Fetch all events to match with user's tickets
+  const { data: allEvents, isError: eventsError, isLoading: isLoadingEvents } = useReadContract({
+    abi: contractInfo.abi,
+    address: contractInfo.address as `0x${string}`,
+    functionName: "getAllEvents",
+    query: {
+      enabled: !!address && isConnected,
+    },
+  });
+
+  const isError = balanceError || eventsError;
+  const isLoadingTickets = isLoadingBalance || isLoadingEvents;
+
   // Process tickets data
   useEffect(() => {
     const processTickets = async () => {
-      if (!userTickets || !Array.isArray(userTickets)) {
+      if (!allEvents || !Array.isArray(allEvents) || !address) {
         setTickets([]);
         return;
       }
 
       setIsLoading(true);
       try {
-        // In a real implementation, you would process the blockchain data
-        // For now, we'll create some mock data structure
         const processedTickets: MyTicket[] = [];
         
-        // This is placeholder logic - replace with actual blockchain data processing
-        if (userTickets.length > 0) {
-          // Process each ticket from blockchain
-          userTickets.forEach((ticket: any, index: number) => {
+        // Get purchased events from localStorage (tracking from EventItem purchases)
+        const purchasedEvents = JSON.parse(localStorage.getItem(`purchased_events_${address}`) || '[]');
+        
+        // Check each purchased event and create ticket entries
+        for (const purchasedEventId of purchasedEvents) {
+          const event = allEvents.find(e => e.id?.toString() === purchasedEventId.toString());
+          
+          if (event) {
             const processedTicket: MyTicket = {
-              id: `ticket-${index}`,
-              eventId: ticket.eventId?.toString() || `event-${index}`,
-              eventName: ticket.eventName || "Sample Event",
+              id: `ticket-${event.id}`,
+              eventId: event.id?.toString() || purchasedEventId.toString(),
+              eventName: event.name || "Event",
               purchaseDate: new Date().toISOString(),
-              eventDate: ticket.eventDate || "2024-12-31",
-              eventTime: ticket.eventTime || "19:00",
-              eventLocation: ticket.eventLocation || "Sample Venue",
-              ticketPrice: Number(ticket.price) || 0,
-              isFree: ticket.isFree || false,
-              isEventCompleted: ticket.isCompleted || false,
-              isEventCancelled: ticket.isCancelled || false,
-              tokenId: ticket.tokenId?.toString() || `${index}`,
+              eventDate: event.date || "2024-12-31",
+              eventTime: event.time || "19:00",
+              eventLocation: event.location || "Venue",
+              ticketPrice: Number(event.cost) || 0,
+              isFree: event.cost === "0" || Number(event.cost) === 0,
+              isEventCompleted: event.isCompleted || false,
+              isEventCancelled: event.isCancelled || false,
+              tokenId: `${Date.now()}`, // Simplified token ID
             };
             processedTickets.push(processedTicket);
-          });
+          }
         }
 
         setTickets(processedTickets);
@@ -85,7 +107,63 @@ const MyTickets: NextPage = () => {
     };
 
     processTickets();
-  }, [userTickets]);
+  }, [allEvents, address]);
+
+  // Handle refund functionality
+  const handleRefund = async (eventId: string) => {
+    if (!isConnected || !address) {
+      alert("Please connect your wallet first!");
+      return;
+    }
+
+    try {
+      await writeContract({
+        address: contractInfo.address as `0x${string}`,
+        abi: contractInfo.abi,
+        functionName: 'claimRefund',
+        args: [BigInt(eventId)],
+      });
+
+      // Store the refunded event ID to remove it after successful refund
+      sessionStorage.setItem('refundedEventId', eventId);
+      
+    } catch (err) {
+      console.error('Refund failed:', err);
+      alert(`Refund failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
+  // Show refund success message and remove ticket from localStorage
+  React.useEffect(() => {
+    if (isRefundConfirmed && address) {
+      const refundedEventId = sessionStorage.getItem('refundedEventId');
+      
+      if (refundedEventId) {
+        // Remove the refunded event from purchased events in localStorage
+        const purchasedEvents = JSON.parse(localStorage.getItem(`purchased_events_${address}`) || '[]');
+        const updatedEvents = purchasedEvents.filter((eventId: string) => eventId !== refundedEventId);
+        localStorage.setItem(`purchased_events_${address}`, JSON.stringify(updatedEvents));
+        
+        // Clear the session storage
+        sessionStorage.removeItem('refundedEventId');
+        
+        // Update the tickets state immediately
+        setTickets(prevTickets =>
+          prevTickets.filter(ticket => ticket.eventId !== refundedEventId)
+        );
+        
+        alert('Refund processed successfully! The ticket has been removed from your collection.');
+      }
+    }
+  }, [isRefundConfirmed, address]);
+
+  // Show refund error message
+  React.useEffect(() => {
+    if (refundError) {
+      console.error('Refund error:', refundError);
+      alert(`Refund failed: ${refundError.message}`);
+    }
+  }, [refundError]);
 
   // Filter tickets based on selected filter
   const filteredTickets = tickets.filter(ticket => {
@@ -178,90 +256,127 @@ const MyTickets: NextPage = () => {
 
             {/* Tickets List */}
             {!isLoadingTickets && !isLoading && !isError && (
-              <div className="tickets-grid">
+              <div className="tickets-container">
                 {filteredTickets.length > 0 ? (
-                  filteredTickets.map((ticket) => {
-                    const ticketStatus = getTicketStatus(ticket);
-                    return (
-                      <div key={ticket.id} className="ticket-card">
-                        <div className="ticket-header">
-                          <h3>{ticket.eventName}</h3>
-                          <div className={`ticket-status ${ticketStatus.className}`}>
-                            {ticketStatus.status}
-                          </div>
-                        </div>
-                        
-                        <div className="ticket-content">
-                          <div className="ticket-details">
-                            <div className="detail-item">
-                              <span className="detail-icon">📅</span>
-                              <span className="detail-label">Date:</span>
-                              <span className="detail-value">
-                                {new Date(ticket.eventDate).toLocaleDateString("en-US", {
-                                  weekday: "long",
-                                  year: "numeric",
-                                  month: "long",
-                                  day: "numeric",
-                                })}
-                              </span>
-                            </div>
-                            
-                            <div className="detail-item">
-                              <span className="detail-icon">🕒</span>
-                              <span className="detail-label">Time:</span>
-                              <span className="detail-value">{ticket.eventTime}</span>
-                            </div>
-                            
-                            <div className="detail-item">
-                              <span className="detail-icon">📍</span>
-                              <span className="detail-label">Location:</span>
-                              <span className="detail-value">{ticket.eventLocation}</span>
-                            </div>
-                            
-                            <div className="detail-item">
-                              <span className="detail-icon">💰</span>
-                              <span className="detail-label">Price:</span>
-                              <span className="detail-value">
-                                {ticket.isFree ? "Free Entry" : `${ticket.ticketPrice} wei`}
-                              </span>
-                            </div>
-                            
-                            <div className="detail-item">
-                              <span className="detail-icon">🎫</span>
-                              <span className="detail-label">Token ID:</span>
-                              <span className="detail-value">#{ticket.tokenId}</span>
-                            </div>
-                            
-                            <div className="detail-item">
-                              <span className="detail-icon">📦</span>
-                              <span className="detail-label">Purchased:</span>
-                              <span className="detail-value">
-                                {new Date(ticket.purchaseDate).toLocaleDateString()}
-                              </span>
+                  <div className="tickets-grid">
+                    {filteredTickets.map((ticket) => {
+                      const ticketStatus = getTicketStatus(ticket);
+                      return (
+                        <div key={ticket.id} className="modern-ticket-card">
+                          {/* Ticket Header with Gradient */}
+                          <div className="ticket-header-modern">
+                            <div className="ticket-header-content">
+                              <div className="event-title-section">
+                                <h2 className="event-title">{ticket.eventName}</h2>
+                                <div className={`status-badge ${ticketStatus.className}`}>
+                                  <span className="status-dot"></span>
+                                  {ticketStatus.status}
+                                </div>
+                              </div>
+                              <div className="ticket-id-section">
+                                <span className="ticket-label">TICKET</span>
+                                <span className="ticket-number">#{ticket.tokenId}</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        
-                        <div className="ticket-actions">
-                          {!ticket.isEventCancelled && !ticket.isEventCompleted && (
-                            <button className="action-btn view-details-btn">
-                              View Event Details
+
+                          {/* Main Ticket Body */}
+                          <div className="ticket-body">
+                            <div className="ticket-info-grid">
+                              <div className="info-card">
+                                <div className="info-icon">📅</div>
+                                <div className="info-content">
+                                  <span className="info-label">Date</span>
+                                  <span className="info-value">
+                                    {new Date(ticket.eventDate).toLocaleDateString("en-US", {
+                                      month: "short",
+                                      day: "numeric",
+                                      year: "numeric",
+                                    })}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="info-card">
+                                <div className="info-icon">🕒</div>
+                                <div className="info-content">
+                                  <span className="info-label">Time</span>
+                                  <span className="info-value">{ticket.eventTime}</span>
+                                </div>
+                              </div>
+
+                              <div className="info-card">
+                                <div className="info-icon">📍</div>
+                                <div className="info-content">
+                                  <span className="info-label">Venue</span>
+                                  <span className="info-value">{ticket.eventLocation}</span>
+                                </div>
+                              </div>
+
+                              <div className="info-card">
+                                <div className="info-icon">{ticket.isFree ? "🎁" : "💰"}</div>
+                                <div className="info-content">
+                                  <span className="info-label">Price</span>
+                                  <span className="info-value">
+                                    {ticket.isFree ? "FREE" : `${ticket.ticketPrice} wei`}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Purchase Info */}
+                            <div className="purchase-info">
+                              <div className="purchase-date">
+                                <span className="purchase-label">Purchased on</span>
+                                <span className="purchase-value">
+                                  {new Date(ticket.purchaseDate).toLocaleDateString("en-US", {
+                                    month: "long",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  })}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Ticket Actions */}
+                          <div className="ticket-actions-modern">
+                            {!ticket.isEventCancelled && !ticket.isEventCompleted && (
+                              <button className="action-btn primary-btn">
+                                <span className="btn-icon">👁️</span>
+                                View Details
+                              </button>
+                            )}
+                            
+                            {ticket.isEventCancelled && (
+                              <button
+                                className="action-btn refund-btn"
+                                onClick={() => handleRefund(ticket.eventId)}
+                                disabled={isRefundPending || isRefundConfirming}
+                              >
+                                <span className="btn-icon">💸</span>
+                                {isRefundPending || isRefundConfirming ? 'Processing...' : 'Get Refund'}
+                              </button>
+                            )}
+                            
+                            <button className="action-btn secondary-btn">
+                              <span className="btn-icon">📱</span>
+                              Show QR Code
                             </button>
-                          )}
-                          
-                          {ticket.isEventCancelled && (
-                            <button className="action-btn refund-btn">
-                              Request Refund
-                            </button>
-                          )}
-                          
-                          <button className="action-btn download-btn">
-                            Download Ticket
-                          </button>
+                          </div>
+
+                          {/* Decorative Elements */}
+                          <div className="ticket-decoration">
+                            <div className="perforation-line">
+                              {Array.from({ length: 20 }, (_, i) => (
+                                <div key={i} className="perforation-dot"></div>
+                              ))}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })
+                      );
+                    })}
+                  </div>
                 ) : (
                   <div className="no-tickets">
                     <div className="no-tickets-icon">🎫</div>

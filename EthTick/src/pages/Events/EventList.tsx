@@ -83,24 +83,23 @@ const EventListPage: React.FC = () => {
     if (Array.isArray(contract_details.data)) {
       console.log("✅ Contract read successful:");
       console.log("Raw contract details:", contract_details.data);
-      const eventsFromChain = contract_details.data.map(
-        (item: any, index: number) => ({
-          // id: item.id?.toString() || index.toString(),
-          id: (index + 4).toString(), // offset by 3
+      const eventsFromChain = contract_details.data
+        .filter((item: any) => !item.isCancelled && !item.isCompleted) // Filter out cancelled and completed events
+        .map((item: any, index: number) => ({
+          // Use the actual event ID from the smart contract (1-based)
+          id: item.id?.toString() || (index + 1).toString(),
           name: item.name,
           date: item.date,
           time: item.time,
           location: item.location,
           description: item.desc,
           price: Number(item.cost), //wei value
-          // cost: item.cost,
           maxTickets: Number(item.maxTickets || 100),
-          isFree: item.cost === "0",
+          isFree: item.cost === "0" || Number(item.cost) === 0,
           imageUrl:
             item.imageUrl ||
             "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80", // fallback image
-        })
-      );
+        }));
 
       setRealEvents(eventsFromChain);
     } else if (contract_details.error) {
@@ -109,15 +108,16 @@ const EventListPage: React.FC = () => {
   }, [contract_details.data, contract_details.error]);
 
   const filteredEvents = useMemo(() => {
-    const combined = [...events, ...(realEvents || [])];
+    // Prioritize blockchain events over sample events
+    const eventsToShow = realEvents && realEvents.length > 0 ? realEvents : events;
 
     if (filter === "free") {
-      return combined.filter((event) => event.isFree);
+      return eventsToShow.filter((event) => event.isFree);
     }
     if (filter === "payable") {
-      return combined.filter((event) => !event.isFree);
+      return eventsToShow.filter((event) => !event.isFree);
     }
-    return combined;
+    return eventsToShow;
   }, [events, realEvents, filter]);
 
   if (isLoading)

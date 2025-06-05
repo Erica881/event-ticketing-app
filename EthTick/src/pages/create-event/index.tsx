@@ -37,6 +37,35 @@ interface CreatedEvent extends Event {
   transactionHash?: string;
 }
 
+// Component to fetch real-time data for a single event
+function EventWithRealTimeData({ event, onUpdate }: {
+  event: BlockchainEvent,
+  onUpdate: (eventId: string, data: { escrowBalance: number }) => void
+}) {
+  // Fetch escrow balance for this specific event
+  const { data: escrowBalance } = useReadContract({
+    abi: contractInfo.abi,
+    address: contractInfo.address as `0x${string}`,
+    functionName: "getEscrowBalance",
+    args: [event.id],
+    query: {
+      enabled: true,
+      refetchInterval: 5000, // Refetch every 5 seconds
+    },
+  });
+
+  // Update parent component when data changes
+  useEffect(() => {
+    if (escrowBalance !== undefined) {
+      onUpdate(event.id.toString(), {
+        escrowBalance: Number(escrowBalance),
+      });
+    }
+  }, [escrowBalance, event.id, onUpdate]);
+
+  return null; // This component doesn't render anything
+}
+
 export default function CreateEvent() {
   const { address, isConnected } = useAccount();
   const { data: hash, writeContractAsync } = useWriteContract();
@@ -47,6 +76,7 @@ export default function CreateEvent() {
 
   const [createdEvents, setCreatedEvents] = useState<CreatedEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [eventRealTimeData, setEventRealTimeData] = useState<Record<string, { escrowBalance: number }>>({});
 
   // Fetch events created by the connected organizer
   const { data: blockchainEvents, isError, isLoading: isLoadingEvents } = useReadContract({
@@ -56,10 +86,19 @@ export default function CreateEvent() {
     args: [address],
     query: {
       enabled: !!address && isConnected,
+      refetchInterval: 10000, // Refetch every 10 seconds
     },
   });
 
-  // Convert blockchain events to our format and fetch additional data
+  // Callback to update real-time data
+  const handleRealTimeDataUpdate = (eventId: string, data: { escrowBalance: number }) => {
+    setEventRealTimeData(prev => ({
+      ...prev,
+      [eventId]: data
+    }));
+  };
+
+  // Convert blockchain events to our format and merge with real-time data
   useEffect(() => {
     const processEvents = async () => {
       if (!blockchainEvents || !Array.isArray(blockchainEvents)) {
@@ -72,13 +111,24 @@ export default function CreateEvent() {
         const processedEvents: CreatedEvent[] = [];
 
         for (const event of blockchainEvents as BlockchainEvent[]) {
-          // For now, we'll use placeholder data for tickets sold and escrow balance
-          // In a real implementation, you would fetch this from the contract
-          const ticketsSold = 0; // This would come from contract data
-          const escrowBalance = Number(event.cost) * ticketsSold;
+          const eventId = event.id.toString();
+          const realTimeData = eventRealTimeData[eventId];
+          
+          // Calculate tickets sold (simplified approach)
+          // For free events, we can't calculate from escrow balance, so we'll use a different approach
+          let ticketsSold = 0;
+          if (event.isFree || Number(event.cost) === 0) {
+            // For free events, we can't determine tickets sold from escrow balance
+            // In a production app, you'd need to track this differently (e.g., event logs)
+            ticketsSold = 0;
+          } else {
+            // For paid events, calculate from escrow balance
+            ticketsSold = realTimeData?.escrowBalance ?
+              Math.floor(realTimeData.escrowBalance / Number(event.cost)) : 0;
+          }
 
           const processedEvent: CreatedEvent = {
-            id: event.id.toString(),
+            id: eventId,
             name: event.name,
             date: event.date,
             time: event.time,
@@ -89,7 +139,7 @@ export default function CreateEvent() {
             isFree: event.isFree,
             imageUrl: event.imageUrl,
             ticketsSold,
-            escrowBalance,
+            escrowBalance: realTimeData?.escrowBalance || 0,
             isCompleted: event.isCompleted,
             isCancelled: event.isCancelled,
           };
@@ -107,7 +157,7 @@ export default function CreateEvent() {
     };
 
     processEvents();
-  }, [blockchainEvents]);
+  }, [blockchainEvents, eventRealTimeData]);
 
   const handleCompleteEvent = async (eventId: string) => {
     try {
@@ -210,6 +260,18 @@ export default function CreateEvent() {
   return (
     <>
       <Navbar />
+      
+      {/* Real-time data fetchers for each event */}
+      {blockchainEvents && Array.isArray(blockchainEvents) &&
+        (blockchainEvents as BlockchainEvent[]).map(event => (
+          <EventWithRealTimeData
+            key={event.id.toString()}
+            event={event}
+            onUpdate={handleRealTimeDataUpdate}
+          />
+        ))
+      }
+      
       <div className="container">
         {/* Header Section */}
         <div className="create-event-header">
