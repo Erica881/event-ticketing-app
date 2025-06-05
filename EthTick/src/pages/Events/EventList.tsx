@@ -136,7 +136,7 @@ const EventListPage: React.FC = () => {
   return (
     <div className="container">
       <div className="page-header">
-        <h1>D iscover Amazing Events</h1>
+        <h1>Discover Amazing Events</h1>
         <p className="page-subtitle">
           Find and book tickets for the best events in your area
         </p>
