@@ -28,7 +28,27 @@ import { config } from "../wagmi";
 //   },
 // });
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Reduce aggressive refetching
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
+      // Add staleTime to prevent unnecessary network requests
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      // Increase cache time
+      gcTime: 1000 * 60 * 10, // 10 minutes (formerly cacheTime)
+      // Reduce retry attempts
+      retry: 1,
+      // Increase retry delay
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+});
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (

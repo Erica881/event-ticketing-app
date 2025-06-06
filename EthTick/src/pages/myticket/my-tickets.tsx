@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import type { NextPage } from "next";
 import Head from "next/head";
 import Navbar from "../Navbar";
@@ -43,6 +43,8 @@ const MyTickets: NextPage = () => {
     args: [address],
     query: {
       enabled: !!address && isConnected,
+      staleTime: 30000, // Consider data fresh for 30 seconds
+      refetchInterval: false, // Disable automatic refetching for balance
     },
   });
 
@@ -53,61 +55,64 @@ const MyTickets: NextPage = () => {
     functionName: "getAllEvents",
     query: {
       enabled: !!address && isConnected,
+      staleTime: 20000, // Consider data fresh for 20 seconds
+      refetchInterval: 30000, // Refetch every 30 seconds instead of default
     },
   });
 
   const isError = balanceError || eventsError;
   const isLoadingTickets = isLoadingBalance || isLoadingEvents;
 
+  // Memoize the processTickets function to prevent unnecessary re-renders
+  const processTickets = useCallback(async () => {
+    if (!allEvents || !Array.isArray(allEvents) || !address) {
+      setTickets([]);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const processedTickets: MyTicket[] = [];
+      
+      // Get purchased events from localStorage (tracking from EventItem purchases)
+      const purchasedEvents = JSON.parse(localStorage.getItem(`purchased_events_${address}`) || '[]');
+      
+      // Check each purchased event and create ticket entries
+      for (const purchasedEventId of purchasedEvents) {
+        const event = allEvents.find(e => e.id?.toString() === purchasedEventId.toString());
+        
+        if (event) {
+          const processedTicket: MyTicket = {
+            id: `ticket-${event.id}`,
+            eventId: event.id?.toString() || purchasedEventId.toString(),
+            eventName: event.name || "Event",
+            purchaseDate: new Date().toISOString(),
+            eventDate: event.date || "2024-12-31",
+            eventTime: event.time || "19:00",
+            eventLocation: event.location || "Venue",
+            ticketPrice: Number(event.cost) || 0,
+            isFree: event.cost === "0" || Number(event.cost) === 0,
+            isEventCompleted: event.isCompleted || false,
+            isEventCancelled: event.isCancelled || false,
+            tokenId: `${Date.now()}`, // Simplified token ID
+          };
+          processedTickets.push(processedTicket);
+        }
+      }
+
+      setTickets(processedTickets);
+    } catch (error) {
+      console.error("Error processing tickets:", error);
+      setTickets([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [allEvents, address]);
+
   // Process tickets data
   useEffect(() => {
-    const processTickets = async () => {
-      if (!allEvents || !Array.isArray(allEvents) || !address) {
-        setTickets([]);
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const processedTickets: MyTicket[] = [];
-        
-        // Get purchased events from localStorage (tracking from EventItem purchases)
-        const purchasedEvents = JSON.parse(localStorage.getItem(`purchased_events_${address}`) || '[]');
-        
-        // Check each purchased event and create ticket entries
-        for (const purchasedEventId of purchasedEvents) {
-          const event = allEvents.find(e => e.id?.toString() === purchasedEventId.toString());
-          
-          if (event) {
-            const processedTicket: MyTicket = {
-              id: `ticket-${event.id}`,
-              eventId: event.id?.toString() || purchasedEventId.toString(),
-              eventName: event.name || "Event",
-              purchaseDate: new Date().toISOString(),
-              eventDate: event.date || "2024-12-31",
-              eventTime: event.time || "19:00",
-              eventLocation: event.location || "Venue",
-              ticketPrice: Number(event.cost) || 0,
-              isFree: event.cost === "0" || Number(event.cost) === 0,
-              isEventCompleted: event.isCompleted || false,
-              isEventCancelled: event.isCancelled || false,
-              tokenId: `${Date.now()}`, // Simplified token ID
-            };
-            processedTickets.push(processedTicket);
-          }
-        }
-
-        setTickets(processedTickets);
-      } catch (error) {
-        console.error("Error processing tickets:", error);
-        setTickets([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     processTickets();
-  }, [allEvents, address]);
+  }, [processTickets]);
 
   // Handle refund functionality
   const handleRefund = async (eventId: string) => {
