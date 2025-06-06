@@ -4,9 +4,14 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import type { NextPage } from "next";
 import Head from "next/head";
 import Navbar from "../Navbar";
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import {
+  useAccount,
+  useReadContract,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+} from "wagmi";
 import { Ticket } from "../../interfaces";
-import { contractInfo, getTicketsBoughtByUser } from "../util";
+import { contractInfo } from "../util";
 
 // Extended ticket interface with blockchain data
 interface MyTicket extends Ticket {
@@ -28,17 +33,28 @@ const MyTickets: NextPage = () => {
   const { address, isConnected } = useAccount();
   const [tickets, setTickets] = useState<MyTicket[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [filter, setFilter] = useState<"all" | "upcoming" | "completed" | "cancelled">("all");
-  
+  const [filter, setFilter] = useState<
+    "all" | "upcoming" | "completed" | "cancelled"
+  >("all");
+
   // Contract interaction hooks for refund
-  const { writeContract, data: refundHash, error: refundError, isPending: isRefundPending } = useWriteContract();
+  const {
+    writeContract,
+    data: refundHash,
+    error: refundError,
+    isPending: isRefundPending,
+  } = useWriteContract();
   const { isLoading: isRefundConfirming, isSuccess: isRefundConfirmed } =
     useWaitForTransactionReceipt({
       hash: refundHash,
     });
 
   // Fetch user's NFT balance (number of tickets owned)
-  const { data: userBalance, isError: balanceError, isLoading: isLoadingBalance } = useReadContract({
+  const {
+    data: userBalance,
+    isError: balanceError,
+    isLoading: isLoadingBalance,
+  } = useReadContract({
     abi: contractInfo.abi,
     address: contractInfo.address as `0x${string}`,
     functionName: "balanceOf",
@@ -51,7 +67,11 @@ const MyTickets: NextPage = () => {
   });
 
   // Fetch all events to match with user's tickets
-  const { data: allEvents, isError: eventsError, isLoading: isLoadingEvents } = useReadContract({
+  const {
+    data: allEvents,
+    isError: eventsError,
+    isLoading: isLoadingEvents,
+  } = useReadContract({
     abi: contractInfo.abi,
     address: contractInfo.address as `0x${string}`,
     functionName: "getAllEvents",
@@ -63,33 +83,48 @@ const MyTickets: NextPage = () => {
   });
 
   // Function to get tickets bought by user for a specific event
-  const getTicketsBoughtForEvent = useCallback(async (eventId: string) => {
-    if (!address || !isConnected) return 0;
-    
-    try {
-      // Check both purchased events and refunded events
-      const purchasedEvents = JSON.parse(localStorage.getItem(`purchased_events_${address}`) || '[]');
-      const refundedEvents = JSON.parse(localStorage.getItem(`refunded_events_${address}`) || '[]');
-      
-      // Return 1 if event was purchased (even if refunded, to show cancelled ticket)
-      return (purchasedEvents.includes(eventId) || refundedEvents.includes(eventId)) ? 1 : 0;
-    } catch (error) {
-      console.error('Error getting tickets bought:', error);
-      return 0;
-    }
-  }, [address, isConnected]);
+  const getTicketsBoughtForEvent = useCallback(
+    async (eventId: string) => {
+      if (!address || !isConnected) return 0;
+
+      try {
+        // Check both purchased events and refunded events
+        const purchasedEvents = JSON.parse(
+          localStorage.getItem(`purchased_events_${address}`) || "[]"
+        );
+        const refundedEvents = JSON.parse(
+          localStorage.getItem(`refunded_events_${address}`) || "[]"
+        );
+
+        // Return 1 if event was purchased (even if refunded, to show cancelled ticket)
+        return purchasedEvents.includes(eventId) ||
+          refundedEvents.includes(eventId)
+          ? 1
+          : 0;
+      } catch (error) {
+        console.error("Error getting tickets bought:", error);
+        return 0;
+      }
+    },
+    [address, isConnected]
+  );
 
   // Function to check if user has already refunded for an event
-  const hasUserRefunded = useCallback((eventId: string) => {
-    if (!address) return false;
-    try {
-      const refundedEvents = JSON.parse(localStorage.getItem(`refunded_events_${address}`) || '[]');
-      return refundedEvents.includes(eventId);
-    } catch (error) {
-      console.error('Error checking refund status:', error);
-      return false;
-    }
-  }, [address]);
+  const hasUserRefunded = useCallback(
+    (eventId: string) => {
+      if (!address) return false;
+      try {
+        const refundedEvents = JSON.parse(
+          localStorage.getItem(`refunded_events_${address}`) || "[]"
+        );
+        return refundedEvents.includes(eventId);
+      } catch (error) {
+        console.error("Error checking refund status:", error);
+        return false;
+      }
+    },
+    [address]
+  );
 
   const isError = balanceError || eventsError;
   const isLoadingTickets = isLoadingBalance || isLoadingEvents;
@@ -104,18 +139,19 @@ const MyTickets: NextPage = () => {
     setIsLoading(true);
     try {
       const processedTickets: MyTicket[] = [];
-      
+
       // Check each event to see if the user has tickets
       for (const event of allEvents) {
         try {
           const eventId = event.id?.toString() || "";
           const ticketCount = await getTicketsBoughtForEvent(eventId);
-          
+
           if (ticketCount > 0) {
             // Generate realistic token IDs based on event ID and timestamp
             const baseTokenId = `${eventId}${String(Date.now()).slice(-6)}`;
-            const tokenIds = Array.from({ length: ticketCount }, (_, i) =>
-              `${baseTokenId}${String(i + 1).padStart(2, '0')}`
+            const tokenIds = Array.from(
+              { length: ticketCount },
+              (_, i) => `${baseTokenId}${String(i + 1).padStart(2, "0")}`
             );
 
             const processedTicket: MyTicket = {
@@ -166,50 +202,65 @@ const MyTickets: NextPage = () => {
       await writeContract({
         address: contractInfo.address as `0x${string}`,
         abi: contractInfo.abi,
-        functionName: 'claimRefund',
+        functionName: "claimRefund",
         args: [BigInt(eventId)],
       });
 
       // Store the refunded event ID to remove it after successful refund
-      sessionStorage.setItem('refundedEventId', eventId);
-      
+      sessionStorage.setItem("refundedEventId", eventId);
     } catch (err) {
-      console.error('Refund failed:', err);
-      alert(`Refund failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      console.error("Refund failed:", err);
+      alert(
+        `Refund failed: ${err instanceof Error ? err.message : "Unknown error"}`
+      );
     }
   };
 
   // Show refund success message and update refund status
   React.useEffect(() => {
     if (isRefundConfirmed && address) {
-      const refundedEventId = sessionStorage.getItem('refundedEventId');
-      
+      const refundedEventId = sessionStorage.getItem("refundedEventId");
+
       if (refundedEventId) {
         // Remove the refunded event from purchased events in localStorage
-        const purchasedEvents = JSON.parse(localStorage.getItem(`purchased_events_${address}`) || '[]');
-        const updatedEvents = purchasedEvents.filter((eventId: string) => eventId !== refundedEventId);
-        localStorage.setItem(`purchased_events_${address}`, JSON.stringify(updatedEvents));
-        
+        const purchasedEvents = JSON.parse(
+          localStorage.getItem(`purchased_events_${address}`) || "[]"
+        );
+        const updatedEvents = purchasedEvents.filter(
+          (eventId: string) => eventId !== refundedEventId
+        );
+        localStorage.setItem(
+          `purchased_events_${address}`,
+          JSON.stringify(updatedEvents)
+        );
+
         // Add to refunded events list to keep track of refunded tickets
-        const refundedEvents = JSON.parse(localStorage.getItem(`refunded_events_${address}`) || '[]');
+        const refundedEvents = JSON.parse(
+          localStorage.getItem(`refunded_events_${address}`) || "[]"
+        );
         if (!refundedEvents.includes(refundedEventId)) {
           refundedEvents.push(refundedEventId);
-          localStorage.setItem(`refunded_events_${address}`, JSON.stringify(refundedEvents));
+          localStorage.setItem(
+            `refunded_events_${address}`,
+            JSON.stringify(refundedEvents)
+          );
         }
-        
+
         // Clear the session storage
-        sessionStorage.removeItem('refundedEventId');
-        
+        sessionStorage.removeItem("refundedEventId");
+
         // Update the tickets state to reflect refund status
-        setTickets(prevTickets =>
-          prevTickets.map(ticket =>
+        setTickets((prevTickets) =>
+          prevTickets.map((ticket) =>
             ticket.eventId === refundedEventId
               ? { ...ticket, hasRefunded: true }
               : ticket
           )
         );
-        
-        alert('Refund processed successfully! The ticket will remain visible as cancelled.');
+
+        alert(
+          "Refund processed successfully! The ticket will remain visible as cancelled."
+        );
       }
     }
   }, [isRefundConfirmed, address]);
@@ -217,7 +268,7 @@ const MyTickets: NextPage = () => {
   // Show refund error message
   React.useEffect(() => {
     if (refundError) {
-      console.error('Refund error:', refundError);
+      console.error("Refund error:", refundError);
       alert(`Refund failed: ${refundError.message}`);
     }
   }, [refundError]);
@@ -226,11 +277,15 @@ const MyTickets: NextPage = () => {
   const filteredTickets = useMemo(() => {
     const eventDate = (ticket: MyTicket) => new Date(ticket.eventDate);
     const now = new Date();
-    
-    let filtered = tickets.filter(ticket => {
+
+    let filtered = tickets.filter((ticket) => {
       switch (filter) {
         case "upcoming":
-          return !ticket.isEventCompleted && !ticket.isEventCancelled && eventDate(ticket) > now;
+          return (
+            !ticket.isEventCompleted &&
+            !ticket.isEventCancelled &&
+            eventDate(ticket) > now
+          );
         case "completed":
           return ticket.isEventCompleted;
         case "cancelled":
@@ -245,7 +300,7 @@ const MyTickets: NextPage = () => {
       return filtered.sort((a, b) => {
         const dateA = eventDate(a);
         const dateB = eventDate(b);
-        
+
         // Priority order: upcoming -> completed -> cancelled
         const getPriority = (ticket: MyTicket) => {
           if (ticket.isEventCancelled) return 3; // Lowest priority (bottom)
@@ -253,15 +308,15 @@ const MyTickets: NextPage = () => {
           if (dateA < now) return 2; // Past events (treat as completed)
           return 1; // Highest priority (upcoming events)
         };
-        
+
         const priorityA = getPriority(a);
         const priorityB = getPriority(b);
-        
+
         // If different priorities, sort by priority
         if (priorityA !== priorityB) {
           return priorityA - priorityB;
         }
-        
+
         // If same priority, sort by date (newest first for upcoming, oldest first for completed/cancelled)
         if (priorityA === 1) {
           // Upcoming events: sort by date (soonest first)
@@ -282,12 +337,14 @@ const MyTickets: NextPage = () => {
   };
 
   const getTicketStatus = (ticket: MyTicket) => {
-    if (ticket.isEventCancelled) return { status: "Cancelled", className: "cancelled" };
-    if (ticket.isEventCompleted) return { status: "Completed", className: "completed" };
-    
+    if (ticket.isEventCancelled)
+      return { status: "Cancelled", className: "cancelled" };
+    if (ticket.isEventCompleted)
+      return { status: "Completed", className: "completed" };
+
     const eventDate = new Date(ticket.eventDate);
     const now = new Date();
-    
+
     if (eventDate < now) return { status: "Past Event", className: "past" };
     return { status: "Upcoming", className: "upcoming" };
   };
@@ -361,15 +418,23 @@ const MyTickets: NextPage = () => {
                           <div className="ticket-header-modern">
                             <div className="ticket-header-content">
                               <div className="event-title-section">
-                                <h2 className="event-title">{ticket.eventName}</h2>
-                                <div className={`status-badge ${ticketStatus.className}`}>
+                                <h2 className="event-title">
+                                  {ticket.eventName}
+                                </h2>
+                                <div
+                                  className={`status-badge ${ticketStatus.className}`}
+                                >
                                   <span className="status-dot"></span>
                                   {ticketStatus.status}
                                 </div>
                               </div>
                               <div className="ticket-id-section">
-                                <span className="ticket-label">TICKETS OWNED</span>
-                                <span className="ticket-number">{ticket.ticketCount}</span>
+                                <span className="ticket-label">
+                                  TICKETS OWNED
+                                </span>
+                                <span className="ticket-number">
+                                  {ticket.ticketCount}
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -382,7 +447,9 @@ const MyTickets: NextPage = () => {
                                 <div className="info-content">
                                   <span className="info-label">Date</span>
                                   <span className="info-value">
-                                    {new Date(ticket.eventDate).toLocaleDateString("en-US", {
+                                    {new Date(
+                                      ticket.eventDate
+                                    ).toLocaleDateString("en-US", {
                                       month: "short",
                                       day: "numeric",
                                       year: "numeric",
@@ -395,7 +462,9 @@ const MyTickets: NextPage = () => {
                                 <div className="info-icon">🕒</div>
                                 <div className="info-content">
                                   <span className="info-label">Time</span>
-                                  <span className="info-value">{ticket.eventTime}</span>
+                                  <span className="info-value">
+                                    {ticket.eventTime}
+                                  </span>
                                 </div>
                               </div>
 
@@ -403,16 +472,22 @@ const MyTickets: NextPage = () => {
                                 <div className="info-icon">📍</div>
                                 <div className="info-content">
                                   <span className="info-label">Venue</span>
-                                  <span className="info-value">{ticket.eventLocation}</span>
+                                  <span className="info-value">
+                                    {ticket.eventLocation}
+                                  </span>
                                 </div>
                               </div>
 
                               <div className="info-card">
-                                <div className="info-icon">{ticket.isFree ? "🎁" : "💰"}</div>
+                                <div className="info-icon">
+                                  {ticket.isFree ? "🎁" : "💰"}
+                                </div>
                                 <div className="info-content">
                                   <span className="info-label">Price</span>
                                   <span className="info-value">
-                                    {ticket.isFree ? "FREE" : `${ticket.ticketPrice} wei`}
+                                    {ticket.isFree
+                                      ? "FREE"
+                                      : `${ticket.ticketPrice} wei`}
                                   </span>
                                 </div>
                               </div>
@@ -423,12 +498,18 @@ const MyTickets: NextPage = () => {
                                 <div className="info-content">
                                   <span className="info-label">Token IDs</span>
                                   <span className="info-value token-ids-list">
-                                    {ticket.tokenIds.map((tokenId: string, index: number) => (
-                                      <span key={tokenId} className="token-id-item">
-                                        #{tokenId}
-                                        {index < ticket.tokenIds.length - 1 && ', '}
-                                      </span>
-                                    ))}
+                                    {ticket.tokenIds.map(
+                                      (tokenId: string, index: number) => (
+                                        <span
+                                          key={tokenId}
+                                          className="token-id-item"
+                                        >
+                                          #{tokenId}
+                                          {index < ticket.tokenIds.length - 1 &&
+                                            ", "}
+                                        </span>
+                                      )
+                                    )}
                                   </span>
                                 </div>
                               </div>
@@ -437,9 +518,13 @@ const MyTickets: NextPage = () => {
                             {/* Purchase Info */}
                             <div className="purchase-info">
                               <div className="purchase-date">
-                                <span className="purchase-label">Purchased on</span>
+                                <span className="purchase-label">
+                                  Purchased on
+                                </span>
                                 <span className="purchase-value">
-                                  {new Date(ticket.purchaseDate).toLocaleDateString("en-US", {
+                                  {new Date(
+                                    ticket.purchaseDate
+                                  ).toLocaleDateString("en-US", {
                                     month: "long",
                                     day: "numeric",
                                     year: "numeric",
@@ -451,13 +536,14 @@ const MyTickets: NextPage = () => {
 
                           {/* Ticket Actions */}
                           <div className="ticket-actions-modern">
-                            {!ticket.isEventCancelled && !ticket.isEventCompleted && (
-                              <button className="action-btn primary-btn">
-                                <span className="btn-icon">👁️</span>
-                                View Details
-                              </button>
-                            )}
-                            
+                            {!ticket.isEventCancelled &&
+                              !ticket.isEventCompleted && (
+                                <button className="action-btn primary-btn">
+                                  <span className="btn-icon">👁️</span>
+                                  View Details
+                                </button>
+                              )}
+
                             {ticket.isEventCancelled && !ticket.hasRefunded && (
                               <button
                                 className="action-btn refund-btn"
@@ -465,17 +551,19 @@ const MyTickets: NextPage = () => {
                                 disabled={isRefundPending || isRefundConfirming}
                               >
                                 <span className="btn-icon">💸</span>
-                                {isRefundPending || isRefundConfirming ? 'Processing...' : 'Get Refund'}
+                                {isRefundPending || isRefundConfirming
+                                  ? "Processing..."
+                                  : "Get Refund"}
                               </button>
                             )}
-                            
+
                             {ticket.isEventCancelled && ticket.hasRefunded && (
                               <div className="refund-status">
                                 <span className="btn-icon">✅</span>
                                 Refund Processed
                               </div>
                             )}
-                            
+
                             <button className="action-btn secondary-btn">
                               <span className="btn-icon">📱</span>
                               Show QR Code
@@ -499,7 +587,7 @@ const MyTickets: NextPage = () => {
                     <div className="no-tickets-icon">🎫</div>
                     <h3>No tickets found</h3>
                     <p>
-                      {filter === "all" 
+                      {filter === "all"
                         ? "You haven't purchased any tickets yet."
                         : `No ${filter} tickets found.`}
                     </p>
