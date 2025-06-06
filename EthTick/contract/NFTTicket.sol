@@ -101,6 +101,7 @@ contract NFTTic is ERC721 {
 
         escrowBalance[_id] += msg.value;
         totalSupply++;
+        eventInfo.maxTickets -= 1;
         uint tokenId = totalSupply;
         _safeMint(msg.sender, tokenId);
         emit TicketMinted(_id, tokenId, msg.sender, eventInfo.cost);
@@ -135,7 +136,7 @@ contract NFTTic is ERC721 {
     function claimRefund(uint256 _id) public {
         Event storage occ = events[_id];
         require(occ.isCancelled, "Event is not cancelled");
-        
+
         uint256 refundAmount = occ.cost;
         escrowBalance[_id] -= refundAmount;
 
