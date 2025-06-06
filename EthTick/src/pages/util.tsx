@@ -2,7 +2,7 @@ import { nftTicAbi } from "../abi/NFTTic";
 import { useReadContract } from "wagmi";
 
 export const contractInfo = {
-  address: "0x1398e2ae6CD065F2aA69Ae8b9E538EA32Faa3E11",
+  address: "0x067ccc8ab719f39eE56A4cdde9832fA116408358",
   abi: nftTicAbi,
 };
 
@@ -14,7 +14,10 @@ export const readCreatedEventByOrganisor = (organisorAddress: string) => ({
 });
 
 // Helper function to check tickets bought by user for a specific event
-export const getTicketsBoughtByUser = (eventId: number, userAddress: string) => ({
+export const getTicketsBoughtByUser = (
+  eventId: number,
+  userAddress: string
+) => ({
   abi: nftTicAbi,
   address: contractInfo.address as `0x${string}`,
   functionName: "ticketsBought",

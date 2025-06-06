@@ -25,7 +25,6 @@ contract NFTTic is ERC721 {
     }
 
     mapping(uint256 => Event) events;
-    mapping(uint256 => mapping(address => uint256)) public ticketsBought;
     mapping(uint256 => uint256) public escrowBalance;
 
     event EventListed(uint256 id, string name, uint256 cost);
@@ -52,7 +51,6 @@ contract NFTTic is ERC721 {
         string memory _location,
         string memory _imageUrl,
         string memory _desc
-        // bool _isFree
     ) public {
         totalEvents++;
         events[totalEvents] = Event(
@@ -64,7 +62,6 @@ contract NFTTic is ERC721 {
             _desc,
             _cost,
             _maxTickets,
-            // _isFree,
             _cost == 0,     
             _imageUrl,
             false,
@@ -95,25 +92,18 @@ contract NFTTic is ERC721 {
         return result;
     }
 
-    function mint(uint256 _id, uint256 quantity) public payable {
+    function mint(uint256 _id) public payable {
         Event storage eventInfo = events[_id];
         
         require(_id != 0 && _id <= totalEvents, "Invalid event ID");
-        require(quantity > 0, "Invalid quantity");
-        require(eventInfo.maxTickets >= quantity, "Not enough tickets");
-        require(msg.value == eventInfo.cost * quantity, "Please pay exact amount");
+        require(msg.value == eventInfo.cost , "Please pay exact amount");
         require(!eventInfo.isCancelled, "Event was cancelled");
 
-        eventInfo.maxTickets -= quantity;
         escrowBalance[_id] += msg.value;
-        ticketsBought[_id][msg.sender] += quantity;
-
-        for (uint256 i = 0; i < quantity; i++) {
-            totalSupply++;
-            uint tokenId = totalSupply;
-            _safeMint(msg.sender, tokenId);
-            emit TicketMinted(_id, tokenId, msg.sender, eventInfo.cost);
-        }
+        totalSupply++;
+        uint tokenId = totalSupply;
+        _safeMint(msg.sender, tokenId);
+        emit TicketMinted(_id, tokenId, msg.sender, eventInfo.cost);
     }
 
     function completeEvent(uint256 _id) public {
@@ -125,7 +115,6 @@ contract NFTTic is ERC721 {
         occ.isCompleted = true;
         uint256 amount = escrowBalance[_id];
         escrowBalance[_id] = 0;
-
         (bool success, ) = occ.organizer.call{value: amount}("");
         require(success, "Transfer failed");
 
@@ -146,12 +135,8 @@ contract NFTTic is ERC721 {
     function claimRefund(uint256 _id) public {
         Event storage occ = events[_id];
         require(occ.isCancelled, "Event is not cancelled");
-
-        uint256 quantity = ticketsBought[_id][msg.sender];
-        require(quantity > 0, "No tickets to refund");
-
-        uint256 refundAmount = occ.cost * quantity;
-        ticketsBought[_id][msg.sender] = 0;
+        
+        uint256 refundAmount = occ.cost;
         escrowBalance[_id] -= refundAmount;
 
         (bool success, ) = msg.sender.call{value: refundAmount}("");
