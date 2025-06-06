@@ -61,12 +61,14 @@ const EventListPage: React.FC = () => {
   const CONTRACT_ADDRESS = contractInfo.address; // Use the address from util.ts
   const ABI = contractInfo.abi; // Use the ABI from util.ts
 
-  const [events, setEvents] = useState<Event[]>(sampleEvents); // Using sample data
-  const [realEvents, setRealEvents] = useState<Event[]>(); // Using sample data
+  // const [events, setEvents] = useState<Event[]>(sampleEvents); // Using sample data
+  const [realEvents, setRealEvents] = useState<Event[]>(); // Using on-chain data
   const [isLoading, setIsLoading] = useState(false); // Placeholder
   const [error, setError] = useState<string | null>(null); // Placeholder
 
-  const [filter, setFilter] = useState<"all" | "free" | "payable" | "cancelled">("all");
+  const [filter, setFilter] = useState<
+    "all" | "free" | "payable" | "cancelled"
+  >("all");
   const contract_details = useReadContract({
     abi: ABI,
     address: CONTRACT_ADDRESS as `0x${string}`,
@@ -121,14 +123,18 @@ const EventListPage: React.FC = () => {
 
   const filteredEvents = useMemo(() => {
     // Prioritize blockchain events over sample events
-    const eventsToShow = realEvents && realEvents.length > 0 ? realEvents : events;
+    const eventsToShow = realEvents ?? [];
 
     let filtered: Event[] = [];
 
     if (filter === "free") {
-      filtered = eventsToShow.filter((event) => event.isFree && !event.isCancelled);
+      filtered = eventsToShow.filter(
+        (event) => event.isFree && !event.isCancelled
+      );
     } else if (filter === "payable") {
-      filtered = eventsToShow.filter((event) => !event.isFree && !event.isCancelled);
+      filtered = eventsToShow.filter(
+        (event) => !event.isFree && !event.isCancelled
+      );
     } else if (filter === "cancelled") {
       filtered = eventsToShow.filter((event) => event.isCancelled);
     } else {
@@ -142,7 +148,7 @@ const EventListPage: React.FC = () => {
         // If one is cancelled and the other isn't, put cancelled at the bottom
         if (a.isCancelled && !b.isCancelled) return 1;
         if (!a.isCancelled && b.isCancelled) return -1;
-        
+
         // If both have the same cancellation status, sort by date (newest first)
         const dateA = new Date(a.date).getTime();
         const dateB = new Date(b.date).getTime();
@@ -151,7 +157,7 @@ const EventListPage: React.FC = () => {
     }
 
     return filtered;
-  }, [events, realEvents, filter]);
+  }, [realEvents, filter]);
 
   if (isLoading)
     return (
