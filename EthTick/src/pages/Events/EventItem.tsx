@@ -83,7 +83,7 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => {
         address: contractInfo.address as `0x${string}`,
         abi: contractInfo.abi,
         functionName: "mint",
-        args: [BigInt(event.id), BigInt(1)],
+        args: [BigInt(event.id)],
         value: totalCost,
       });
     } catch (err) {
