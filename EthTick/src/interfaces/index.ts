@@ -10,6 +10,8 @@ export interface Event {
   maxTickets: number;
   isFree: boolean;
   imageUrl?: string; // Optional image URL
+  isCompleted?: boolean; // Event completion status
+  isCancelled?: boolean; // Event cancellation status
 }
 
 export interface Ticket {

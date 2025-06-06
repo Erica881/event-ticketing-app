@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   useAccount,
   useWriteContract,
@@ -184,6 +184,31 @@ export default function CreateEvent() {
 
     processEvents();
   }, [blockchainEvents, eventRealTimeData]);
+
+  // Sort created events: active events first, then completed, then cancelled
+  const sortedCreatedEvents = useMemo(() => {
+    return createdEvents.sort((a, b) => {
+      // Priority order: active -> completed -> cancelled
+      const getPriority = (event: CreatedEvent) => {
+        if (event.isCancelled) return 3; // Lowest priority (bottom)
+        if (event.isCompleted) return 2; // Medium priority
+        return 1; // Highest priority (active events)
+      };
+      
+      const priorityA = getPriority(a);
+      const priorityB = getPriority(b);
+      
+      // If different priorities, sort by priority
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+      
+      // If same priority, sort by date (newest first)
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return dateB - dateA;
+    });
+  }, [createdEvents]);
 
   const handleCompleteEvent = async (eventId: string) => {
     try {
@@ -376,6 +401,38 @@ export default function CreateEvent() {
                       </div>
                     </div>
                   </div>
+            {!isLoadingEvents && !isLoading && sortedCreatedEvents.map((event: CreatedEvent) => (
+              <div key={event.id} className="created-event-card">
+                <div className="event-card-header">
+                  <h3>{event.name}</h3>
+                </div>
+                
+                <div className="event-card-content">
+                  <div className="event-description-box">
+                    <textarea 
+                      value={event.description}
+                      readOnly
+                      className="event-description-textarea"
+                    />
+                  </div>
+                  
+                  <div className="event-stats">
+                    <div className="stat-item">
+                      <span className="stat-label">Tic Price:</span>
+                      <span className="stat-value">
+                        {(event.isFree || event.price === 0) ? "Free Entry" : `${event.price} wei`}
+                      </span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">Sold:</span>
+                      <span className="stat-value">{event.ticketsSold} ticket(s)</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">Escrow Balance:</span>
+                      <span className="stat-value">{event.escrowBalance} wei</span>
+                    </div>
+                  </div>
+                </div>
 
                   <div className="event-actions">
                     {!event.isCompleted && !event.isCancelled && (

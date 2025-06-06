@@ -464,6 +464,155 @@ label {
   cursor: not-allowed;
 }
 
+/* Sold Out Button Styles */
+.event-item .buy-button.sold-out {
+  background: linear-gradient(135deg, #666666, #555555);
+  color: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.event-item .buy-button.sold-out:hover {
+  background: linear-gradient(135deg, #666666, #555555);
+  transform: none;
+  box-shadow: none;
+}
+
+/* Cancelled Event Styles */
+.event-item.cancelled-event {
+  opacity: 0.8;
+  border: 2px solid #dc3545;
+}
+
+.event-item.cancelled-event:hover {
+  transform: translateY(-5px);
+  border-color: #ff6b6b;
+}
+
+.cancelled-badge {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+  z-index: 2;
+}
+
+.cancelled-notice {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.event-item .buy-button.cancelled {
+  background: linear-gradient(135deg, #666666, #555555);
+  color: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.event-item .buy-button.cancelled:hover {
+  background: linear-gradient(135deg, #666666, #555555);
+  transform: none;
+  box-shadow: none;
+}
+
+/* Completed Event Styles */
+.event-item.completed-event {
+  opacity: 0.8;
+  border: 2px solid #28a745;
+}
+
+.event-item.completed-event:hover {
+  transform: translateY(-5px);
+  border-color: #34ce57;
+}
+
+.completed-badge {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+  z-index: 2;
+}
+
+.completed-notice {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.event-item .buy-button.completed {
+  background: linear-gradient(135deg, #666666, #555555);
+  color: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.event-item .buy-button.completed:hover {
+  background: linear-gradient(135deg, #666666, #555555);
+  transform: none;
+  box-shadow: none;
+}
+
+/* Ticket Availability Styles */
+.ticket-availability {
+  margin: 15px 0;
+  padding: 8px 12px;
+  border-radius: 20px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.sold-out-notice {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tickets-remaining {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
 /* Filter */
 .filter-container {
   margin-bottom: 30px;
@@ -1613,6 +1762,28 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   font-size: 1rem;
 }
 
+/* Refund Status Styles */
+.refund-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.2rem;
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex: 1;
+  justify-content: center;
+  min-width: 120px;
+}
+
+.refund-status .btn-icon {
+  font-size: 1rem;
+}
+
 /* Decorative Elements */
 .ticket-decoration {
   position: relative;
@@ -1751,4 +1922,70 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   .event-title {
     font-size: 1.2rem;
   }
+}
+
+/* Token IDs Styling */
+.token-ids-card {
+  grid-column: 1 / -1; /* Span full width */
+}
+
+.token-ids-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.token-id-item {
+  background: linear-gradient(135deg, #ff4d4d, #f9cb28);
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+@media (max-width: 768px) {
+  .token-ids-list {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  
+  .token-id-item {
+    text-align: center;
+  }
+}
+
+/* Refund Status Styles */
+.refund-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.2rem;
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex: 1;
+  justify-content: center;
+  min-width: 120px;
+}
+
+.refund-status .btn-icon {
+  font-size: 1rem;
+}
+
+/* Filter Count Styles */
+.filter-count {
+  color: #f9cb28;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 8px 15px;
+  background-color: #1a1a1a;
+  border-radius: 20px;
+  border: 1px solid #333;
+  margin-left: 15px;
 }

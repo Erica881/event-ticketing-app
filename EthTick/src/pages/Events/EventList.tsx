@@ -66,14 +66,14 @@ const EventListPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false); // Placeholder
   const [error, setError] = useState<string | null>(null); // Placeholder
 
-  const [filter, setFilter] = useState<"all" | "free" | "payable">("all");
+  const [filter, setFilter] = useState<"all" | "free" | "payable" | "cancelled">("all");
   const contract_details = useReadContract({
     abi: ABI,
     address: CONTRACT_ADDRESS as `0x${string}`,
     functionName: "getAllEvents",
     query: {
-      staleTime: 15000, // Consider data fresh for 15 seconds
-      refetchInterval: 20000, // Refetch every 20 seconds instead of default
+      staleTime: 5000, // Consider data fresh for 5 seconds (shorter for ticket updates)
+      refetchInterval: 8000, // Refetch every 8 seconds to catch ticket purchases quickly
       refetchOnWindowFocus: false, // Prevent refetch on window focus
     },
   });
@@ -90,7 +90,7 @@ const EventListPage: React.FC = () => {
       console.log("✅ Contract read successful:");
       console.log("Raw contract details:", contract_details.data);
       const eventsFromChain = contract_details.data
-        .filter((item: any) => !item.isCancelled && !item.isCompleted) // Filter out cancelled and completed events
+        .filter((item: any) => !item.isCompleted) // Filter out completed events from homepage
         .map((item: any, index: number) => ({
           // Use the actual event ID from the smart contract (1-based)
           id: item.id?.toString() || (index + 1).toString(),
@@ -100,8 +100,10 @@ const EventListPage: React.FC = () => {
           location: item.location,
           description: item.desc,
           price: Number(item.cost), //wei value
-          maxTickets: Number(item.maxTickets || 100),
+          maxTickets: Number(item.maxTickets || 0), // maxTickets from contract represents remaining tickets
           isFree: item.cost === "0" || Number(item.cost) === 0,
+          isCompleted: item.isCompleted || false,
+          isCancelled: item.isCancelled || false,
           imageUrl:
             item.imageUrl ||
             "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80", // fallback image
@@ -121,13 +123,34 @@ const EventListPage: React.FC = () => {
     // Prioritize blockchain events over sample events
     const eventsToShow = realEvents && realEvents.length > 0 ? realEvents : events;
 
+    let filtered: Event[] = [];
+
     if (filter === "free") {
-      return eventsToShow.filter((event) => event.isFree);
+      filtered = eventsToShow.filter((event) => event.isFree && !event.isCancelled);
+    } else if (filter === "payable") {
+      filtered = eventsToShow.filter((event) => !event.isFree && !event.isCancelled);
+    } else if (filter === "cancelled") {
+      filtered = eventsToShow.filter((event) => event.isCancelled);
+    } else {
+      // For "all" events, show all events but sort cancelled ones to the bottom
+      filtered = eventsToShow;
     }
-    if (filter === "payable") {
-      return eventsToShow.filter((event) => !event.isFree);
+
+    // Sort events: active events first, then cancelled events
+    if (filter === "all") {
+      return filtered.sort((a, b) => {
+        // If one is cancelled and the other isn't, put cancelled at the bottom
+        if (a.isCancelled && !b.isCancelled) return 1;
+        if (!a.isCancelled && b.isCancelled) return -1;
+        
+        // If both have the same cancellation status, sort by date (newest first)
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        return dateB - dateA;
+      });
     }
-    return eventsToShow;
+
+    return filtered;
   }, [events, realEvents, filter]);
 
   if (isLoading)
