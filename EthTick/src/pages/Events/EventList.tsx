@@ -72,8 +72,8 @@ const EventListPage: React.FC = () => {
     address: CONTRACT_ADDRESS as `0x${string}`,
     functionName: "getAllEvents",
     query: {
-      staleTime: 15000, // Consider data fresh for 15 seconds
-      refetchInterval: 20000, // Refetch every 20 seconds instead of default
+      staleTime: 5000, // Consider data fresh for 5 seconds (shorter for ticket updates)
+      refetchInterval: 8000, // Refetch every 8 seconds to catch ticket purchases quickly
       refetchOnWindowFocus: false, // Prevent refetch on window focus
     },
   });
@@ -100,7 +100,7 @@ const EventListPage: React.FC = () => {
           location: item.location,
           description: item.desc,
           price: Number(item.cost), //wei value
-          maxTickets: Number(item.maxTickets || 100),
+          maxTickets: Number(item.maxTickets || 0), // maxTickets from contract represents remaining tickets
           isFree: item.cost === "0" || Number(item.cost) === 0,
           imageUrl:
             item.imageUrl ||

@@ -464,6 +464,51 @@ label {
   cursor: not-allowed;
 }
 
+/* Sold Out Button Styles */
+.event-item .buy-button.sold-out {
+  background: linear-gradient(135deg, #666666, #555555);
+  color: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.event-item .buy-button.sold-out:hover {
+  background: linear-gradient(135deg, #666666, #555555);
+  transform: none;
+  box-shadow: none;
+}
+
+/* Ticket Availability Styles */
+.ticket-availability {
+  margin: 15px 0;
+  padding: 8px 12px;
+  border-radius: 20px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.sold-out-notice {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tickets-remaining {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
 /* Filter */
 .filter-container {
   margin-bottom: 30px;

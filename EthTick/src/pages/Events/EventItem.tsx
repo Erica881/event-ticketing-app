@@ -15,7 +15,7 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => {
   const { address, isConnected } = useAccount();
   const router = useRouter();
 
-  const [quantity, setQuantity] = useState(1);
+  // Removed quantity state - users can only buy 1 ticket at a time
   const [isLoading, setIsLoading] = useState(false);
 
   // Wagmi hooks for contract interaction
@@ -41,8 +41,8 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => {
     try {
       setIsLoading(true);
       
-      // For free events, set quantity to 1 and cost to 0
-      const ticketQuantity = (event.isFree || event.price === 0) ? 1 : quantity;
+      // Users can only buy 1 ticket at a time
+      const ticketQuantity = 1;
       const totalCost = BigInt(event.price) * BigInt(ticketQuantity);
       
       console.log('Purchasing tickets:', {
@@ -54,9 +54,9 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => {
         contractAddress: contractInfo.address
       });
 
-      // Validate that we have enough tickets available
-      if (event.maxTickets && event.maxTickets < ticketQuantity) {
-        alert(`Only ${event.maxTickets} tickets available for this event.`);
+      // Check if tickets are still available
+      if (event.maxTickets <= 0) {
+        alert(`This event is sold out.`);
         setIsLoading(false);
         return;
       }
@@ -94,10 +94,9 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => {
   // Show success message when transaction is confirmed
   React.useEffect(() => {
     if (isConfirmed && address) {
-      const ticketQuantity = (event.isFree || event.price === 0) ? 1 : quantity;
       const message = (event.isFree || event.price === 0)
         ? `Successfully registered for ${event.name}!`
-        : `Successfully purchased ${ticketQuantity} ticket${ticketQuantity > 1 ? 's' : ''} for ${event.name}!`;
+        : `Successfully purchased 1 ticket for ${event.name}!`;
       
       // Track the purchase in localStorage for My Tickets page
       const purchasedEvents = JSON.parse(localStorage.getItem(`purchased_events_${address}`) || '[]');
@@ -108,7 +107,7 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => {
       
       alert(message);
     }
-  }, [isConfirmed, quantity, event.name, event.isFree, event.price, event.id, address]);
+  }, [isConfirmed, event.name, event.isFree, event.price, event.id, address]);
 
   // Show error message if transaction fails
   React.useEffect(() => {
@@ -118,13 +117,8 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => {
     }
   }, [error]);
 
-  const handleQuantityChange = (change: number) => {
-    const newQuantity = quantity + change;
-    if (newQuantity >= 1 && newQuantity <= 10) {
-      // Max 10 tickets
-      setQuantity(newQuantity);
-    }
-  };
+  // Check if event is sold out (maxTickets represents remaining tickets from smart contract)
+  const isSoldOut = event.maxTickets <= 0;
 
   const imageUrl =
     event.imageUrl ||
@@ -160,34 +154,25 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => {
         </p>
         <p className="event-description">{event.description}</p>
 
-        {!(event.isFree || event.price === 0) && (
-          <div className="ticket-quantity">
-            <button
-              className="quantity-btn"
-              onClick={() => handleQuantityChange(-1)}
-              disabled={quantity <= 1}
-            >
-              -
-            </button>
-            <span className="quantity-display">{quantity}</span>
-            <button
-              className="quantity-btn"
-              onClick={() => handleQuantityChange(1)}
-              disabled={quantity >= 10}
-            >
-              +
-            </button>
-          </div>
-        )}
+        {/* Show ticket availability status */}
+        <div className="ticket-availability">
+          {isSoldOut ? (
+            <p className="sold-out-notice">🚫 Sold Out</p>
+          ) : event.maxTickets ? (
+            <p className="tickets-remaining">🎫 {event.maxTickets} tickets remaining</p>
+          ) : null}
+        </div>
       </div>
 
       <button
-        className="buy-button"
+        className={`buy-button ${isSoldOut ? 'sold-out' : ''}`}
         onClick={handleBuyClick}
-        disabled={isLoading || isPending || isConfirming || !isConnected}
+        disabled={isLoading || isPending || isConfirming || !isConnected || isSoldOut}
       >
         {!isConnected ? (
           "Connect Wallet"
+        ) : isSoldOut ? (
+          "Sold Out"
         ) : isLoading || isPending ? (
           "Confirming Transaction..."
         ) : isConfirming ? (
@@ -195,9 +180,7 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => {
         ) : (event.isFree || event.price === 0) ? (
           "Register Now"
         ) : (
-          `Purchase Ticket${quantity > 1 ? "s" : ""} • ${(
-            event.price * quantity
-          )} wei`
+          `Purchase Ticket • ${event.price} wei`
         )}
       </button>
     </div>
