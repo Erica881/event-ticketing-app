@@ -1797,3 +1797,35 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     font-size: 1.2rem;
   }
 }
+
+/* Token IDs Styling */
+.token-ids-card {
+  grid-column: 1 / -1; /* Span full width */
+}
+
+.token-ids-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.token-id-item {
+  background: linear-gradient(135deg, #ff4d4d, #f9cb28);
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+@media (max-width: 768px) {
+  .token-ids-list {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  
+  .token-id-item {
+    text-align: center;
+  }
+}

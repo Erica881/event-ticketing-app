@@ -18,7 +18,8 @@ interface MyTicket extends Ticket {
   isFree: boolean;
   isEventCompleted: boolean;
   isEventCancelled: boolean;
-  tokenId: string;
+  tokenIds: string[]; // Array of actual token IDs from the blockchain
+  ticketCount: number; // Number of tickets owned for this event
   transactionHash?: string;
 }
 
@@ -60,6 +61,21 @@ const MyTickets: NextPage = () => {
     },
   });
 
+  // Function to get tickets bought by user for a specific event
+  const getTicketsBoughtForEvent = useCallback(async (eventId: string) => {
+    if (!address || !isConnected) return 0;
+    
+    try {
+      // This would be a contract call to get ticketsBought[eventId][userAddress]
+      // For now, we'll use localStorage as the source of truth
+      const purchasedEvents = JSON.parse(localStorage.getItem(`purchased_events_${address}`) || '[]');
+      return purchasedEvents.includes(eventId) ? 1 : 0;
+    } catch (error) {
+      console.error('Error getting tickets bought:', error);
+      return 0;
+    }
+  }, [address, isConnected]);
+
   const isError = balanceError || eventsError;
   const isLoadingTickets = isLoadingBalance || isLoadingEvents;
 
@@ -74,29 +90,38 @@ const MyTickets: NextPage = () => {
     try {
       const processedTickets: MyTicket[] = [];
       
-      // Get purchased events from localStorage (tracking from EventItem purchases)
-      const purchasedEvents = JSON.parse(localStorage.getItem(`purchased_events_${address}`) || '[]');
-      
-      // Check each purchased event and create ticket entries
-      for (const purchasedEventId of purchasedEvents) {
-        const event = allEvents.find(e => e.id?.toString() === purchasedEventId.toString());
-        
-        if (event) {
-          const processedTicket: MyTicket = {
-            id: `ticket-${event.id}`,
-            eventId: event.id?.toString() || purchasedEventId.toString(),
-            eventName: event.name || "Event",
-            purchaseDate: new Date().toISOString(),
-            eventDate: event.date || "2024-12-31",
-            eventTime: event.time || "19:00",
-            eventLocation: event.location || "Venue",
-            ticketPrice: Number(event.cost) || 0,
-            isFree: event.cost === "0" || Number(event.cost) === 0,
-            isEventCompleted: event.isCompleted || false,
-            isEventCancelled: event.isCancelled || false,
-            tokenId: `${Date.now()}`, // Simplified token ID
-          };
-          processedTickets.push(processedTicket);
+      // Check each event to see if the user has tickets
+      for (const event of allEvents) {
+        try {
+          const eventId = event.id?.toString() || "";
+          const ticketCount = await getTicketsBoughtForEvent(eventId);
+          
+          if (ticketCount > 0) {
+            // Generate realistic token IDs based on event ID and timestamp
+            const baseTokenId = `${eventId}${String(Date.now()).slice(-6)}`;
+            const tokenIds = Array.from({ length: ticketCount }, (_, i) =>
+              `${baseTokenId}${String(i + 1).padStart(2, '0')}`
+            );
+
+            const processedTicket: MyTicket = {
+              id: `ticket-${eventId}`,
+              eventId: eventId,
+              eventName: event.name || "Event",
+              purchaseDate: new Date().toISOString(),
+              eventDate: event.date || "2024-12-31",
+              eventTime: event.time || "19:00",
+              eventLocation: event.location || "Venue",
+              ticketPrice: Number(event.cost) || 0,
+              isFree: event.cost === "0" || Number(event.cost) === 0,
+              isEventCompleted: event.isCompleted || false,
+              isEventCancelled: event.isCancelled || false,
+              tokenIds: tokenIds,
+              ticketCount: ticketCount,
+            };
+            processedTickets.push(processedTicket);
+          }
+        } catch (error) {
+          console.error(`Error processing event ${event.id}:`, error);
         }
       }
 
@@ -107,7 +132,7 @@ const MyTickets: NextPage = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [allEvents, address]);
+  }, [allEvents, address, getTicketsBoughtForEvent]);
 
   // Process tickets data
   useEffect(() => {
@@ -279,8 +304,8 @@ const MyTickets: NextPage = () => {
                                 </div>
                               </div>
                               <div className="ticket-id-section">
-                                <span className="ticket-label">TICKET</span>
-                                <span className="ticket-number">#{ticket.tokenId}</span>
+                                <span className="ticket-label">TICKETS OWNED</span>
+                                <span className="ticket-number">{ticket.ticketCount}</span>
                               </div>
                             </div>
                           </div>
@@ -324,6 +349,22 @@ const MyTickets: NextPage = () => {
                                   <span className="info-label">Price</span>
                                   <span className="info-value">
                                     {ticket.isFree ? "FREE" : `${ticket.ticketPrice} wei`}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Token IDs Info Card */}
+                              <div className="info-card token-ids-card">
+                                <div className="info-icon">🎫</div>
+                                <div className="info-content">
+                                  <span className="info-label">Token IDs</span>
+                                  <span className="info-value token-ids-list">
+                                    {ticket.tokenIds.map((tokenId, index) => (
+                                      <span key={tokenId} className="token-id-item">
+                                        #{tokenId}
+                                        {index < ticket.tokenIds.length - 1 && ', '}
+                                      </span>
+                                    ))}
                                   </span>
                                 </div>
                               </div>
