@@ -361,46 +361,6 @@ export default function CreateEvent() {
 
           {/* Events List */}
           <div className="created-events-list">
-            {!isLoadingEvents &&
-              !isLoading &&
-              createdEvents.map((event) => (
-                <div key={event.id} className="created-event-card">
-                  <div className="event-card-header">
-                    <h3>{event.name}</h3>
-                  </div>
-
-                  <div className="event-card-content">
-                    <div className="event-description-box">
-                      <textarea
-                        value={event.description}
-                        readOnly
-                        className="event-description-textarea"
-                      />
-                    </div>
-
-                    <div className="event-stats">
-                      <div className="stat-item">
-                        <span className="stat-label">Tic Price:</span>
-                        <span className="stat-value">
-                          {event.isFree || event.price === 0
-                            ? "Free Entry"
-                            : `${event.price} wei`}
-                        </span>
-                      </div>
-                      <div className="stat-item">
-                        <span className="stat-label">Sold:</span>
-                        <span className="stat-value">
-                          {event.ticketsSold} ticket(s)
-                        </span>
-                      </div>
-                      <div className="stat-item">
-                        <span className="stat-label">Escrow Balance:</span>
-                        <span className="stat-value">
-                          {event.escrowBalance} wei
-                        </span>
-                      </div>
-                    </div>
-                  </div>
             {!isLoadingEvents && !isLoading && sortedCreatedEvents.map((event: CreatedEvent) => (
               <div key={event.id} className="created-event-card">
                 <div className="event-card-header">
@@ -409,7 +369,7 @@ export default function CreateEvent() {
                 
                 <div className="event-card-content">
                   <div className="event-description-box">
-                    <textarea 
+                    <textarea
                       value={event.description}
                       readOnly
                       className="event-description-textarea"
@@ -434,58 +394,57 @@ export default function CreateEvent() {
                   </div>
                 </div>
 
-                  <div className="event-actions">
-                    {!event.isCompleted && !event.isCancelled && (
-                      <>
-                        <button
-                          className="action-btn complete-btn"
-                          onClick={() => handleCompleteEvent(event.id)}
-                        >
-                          Complete Event
-                        </button>
-                        <button
-                          className="action-btn cancel-btn"
-                          onClick={() => handleCancelEvent(event.id)}
-                        >
-                          Cancel Event
-                        </button>
-                      </>
-                    )}
+                <div className="event-actions">
+                  {!event.isCompleted && !event.isCancelled && (
+                    <>
+                      <button
+                        className="action-btn complete-btn"
+                        onClick={() => handleCompleteEvent(event.id)}
+                      >
+                        Complete Event
+                      </button>
+                      <button
+                        className="action-btn cancel-btn"
+                        onClick={() => handleCancelEvent(event.id)}
+                      >
+                        Cancel Event
+                      </button>
+                    </>
+                  )}
 
-                    {event.isCompleted && (
-                      <div className="event-status-section">
-                        <div className="status-badge completed">
-                          Event Completed
-                        </div>
-                        {event.transactionHash && (
-                          <div className="transaction-success">
-                            <div className="success-indicator">
-                              <span className="success-icon">✓</span>
-                              <span>Transaction Success</span>
-                            </div>
-                            <div className="transaction-note">
-                              Include the transaction hash and direct link to
-                              check the transaction
-                            </div>
+                  {event.isCompleted && (
+                    <div className="event-status-section">
+                      <div className="status-badge completed">
+                        Event Completed
+                      </div>
+                      {event.transactionHash && (
+                        <div className="transaction-success">
+                          <div className="success-indicator">
+                            <span className="success-icon">✓</span>
+                            <span>Transaction Success</span>
                           </div>
-                        )}
-                      </div>
-                    )}
+                          <div className="transaction-note">
+                            Include the transaction hash and direct link to check the transaction
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                    {event.isCancelled && (
-                      <div className="status-badge cancelled">
-                        Event Cancelled
-                      </div>
-                    )}
-                  </div>
+                  {event.isCancelled && (
+                    <div className="status-badge cancelled">
+                      Event Cancelled
+                    </div>
+                  )}
                 </div>
-              ))}
+              </div>
+            ))}
           </div>
 
           {!isLoadingEvents &&
             !isLoading &&
             !isError &&
-            createdEvents.length === 0 && (
+            sortedCreatedEvents.length === 0 && (
               <div className="no-events">
                 <div className="no-events-icon">🎫</div>
                 <p>You haven't created any events yet.</p>
