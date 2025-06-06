@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Event } from "../../interfaces";
-// import { useAuth } from "../../contexts/AuthContext"; // Assuming similar context or hook
 import { useRouter } from "next/router"; // Using next/router
 import {
   useWriteContract,
@@ -8,14 +7,12 @@ import {
   useAccount,
 } from "wagmi";
 import { contractInfo } from "../util";
-import { parseEther } from "viem";
 
 interface EventItemProps {
   event: Event;
 }
 
 const EventItem: React.FC<EventItemProps> = ({ event }) => {
-  // const { isAuthenticated } = useAuth(); // Placeholder for auth
   const { address, isConnected } = useAccount();
   const router = useRouter();
 
@@ -62,13 +59,13 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => {
       setIsLoading(true);
 
       // Users can only buy 1 ticket at a time
-      const ticketQuantity = 1;
-      const totalCost = BigInt(event.price) * BigInt(ticketQuantity);
+      // const ticketQuantity = 1;
+      const totalCost = BigInt(event.price);
 
       console.log("Purchasing tickets:", {
         eventId: event.id,
         eventIdAsNumber: Number(event.id),
-        quantity: ticketQuantity,
+        quantity: 1,
         totalCost: totalCost.toString(),
         isFree: event.isFree || event.price === 0,
         contractAddress: contractInfo.address,
@@ -86,7 +83,7 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => {
         address: contractInfo.address as `0x${string}`,
         abi: contractInfo.abi,
         functionName: "mint",
-        args: [BigInt(event.id), BigInt(ticketQuantity)],
+        args: [BigInt(event.id), BigInt(1)],
         value: totalCost,
       });
     } catch (err) {
