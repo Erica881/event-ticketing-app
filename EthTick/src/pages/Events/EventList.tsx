@@ -1,68 +1,14 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-// import { useEvents } from "../../contexts/EventContext"; // Assuming similar context or hook
 import EventItem from "./EventItem";
 import EventFilter from "./EventFilter";
 import { Event } from "../../interfaces";
 import { useReadContract } from "wagmi";
-import { nftTicAbi } from "../../abi/NFTTic"; // You must provide the ABI file
-// import { contractInfo } from "../../pages/util";
 import { contractInfo } from "../../pages/util"; // Importing contract info from util.ts
-
-// Sample Data - Replace with actual data fetching
-const sampleEvents: Event[] = [
-  {
-    id: "1",
-    name: "Tech Conference 2025",
-    date: "2025-08-15",
-    time: "09:00",
-    location: "Online",
-    description:
-      "Join us for the biggest tech conference of the year. Learn about the latest trends in AI, Blockchain, and Web3.",
-    price: 0,
-    // cost: "0",
-    maxTickets: 500,
-    isFree: true,
-    imageUrl:
-      "https://images.unsplash.com/photo-1496171367470-9ed9a91ea931?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-  },
-  {
-    id: "2",
-    name: "Music Fest",
-    date: "2025-09-05",
-    time: "18:00",
-    location: "City Park",
-    description:
-      "An outdoor music festival featuring top artists. Enjoy live music, food trucks, and more.",
-    price: 75,
-    // cost: "0.075",
-    maxTickets: 1000,
-    isFree: false,
-    imageUrl:
-      "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80",
-  },
-  {
-    id: "3",
-    name: "Art Exhibition",
-    date: "2025-07-20",
-    time: "10:00",
-    location: "Downtown Gallery",
-    description:
-      "Explore stunning artworks from local and international artists. A must-see for art lovers.",
-    price: 20,
-    // cost: "0.02",
-    maxTickets: 200,
-    isFree: false,
-    imageUrl:
-      "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-  },
-];
 
 const EventListPage: React.FC = () => {
   const CONTRACT_ADDRESS = contractInfo.address; // Use the address from util.ts
   const ABI = contractInfo.abi; // Use the ABI from util.ts
-
-  // const [events, setEvents] = useState<Event[]>(sampleEvents); // Using sample data
-  const [realEvents, setRealEvents] = useState<Event[]>(); // Using on-chain data
+  const [realEvents, setRealEvents] = useState<Event[]>([]); // Using sample data
   const [isLoading, setIsLoading] = useState(false); // Placeholder
   const [error, setError] = useState<string | null>(null); // Placeholder
 
@@ -84,7 +30,7 @@ const EventListPage: React.FC = () => {
   const processContractData = useCallback(() => {
     console.log(
       "Contract ABI getAllEvents:",
-      nftTicAbi.find((f) => f.name === "getAllEvents")
+      ABI.find((f) => f.name === "getAllEvents")
     );
     console.log("Calling contract at:", CONTRACT_ADDRESS);
 
@@ -123,7 +69,7 @@ const EventListPage: React.FC = () => {
 
   const filteredEvents = useMemo(() => {
     // Prioritize blockchain events over sample events
-    const eventsToShow = realEvents ?? [];
+    const eventsToShow = realEvents;
 
     let filtered: Event[] = [];
 
