@@ -428,14 +428,6 @@ const MyTickets: NextPage = () => {
                                   {ticketStatus.status}
                                 </div>
                               </div>
-                              <div className="ticket-id-section">
-                                <span className="ticket-label">
-                                  TICKETS OWNED
-                                </span>
-                                <span className="ticket-number">
-                                  {ticket.ticketCount}
-                                </span>
-                              </div>
                             </div>
                           </div>
 
