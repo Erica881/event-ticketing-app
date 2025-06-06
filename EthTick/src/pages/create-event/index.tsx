@@ -53,7 +53,8 @@ function EventWithRealTimeData({
     args: [event.id],
     query: {
       enabled: true,
-      refetchInterval: 5000, // Refetch every 5 seconds
+      refetchInterval: 20000, // Reduced from 5s to 20s for better performance
+      staleTime: 15000, // Consider data fresh for 15 seconds
     },
   });
 
@@ -95,29 +96,21 @@ export default function CreateEvent() {
     args: [address],
     query: {
       enabled: !!address && isConnected,
-      refetchInterval: 10000, // Refetch every 10 seconds
+      refetchInterval: 15000, // Reduced from 10s to 15s for better performance
+      staleTime: 10000, // Consider data fresh for 10 seconds
     },
   });
 
   // Callback to update real-time data
-  // const handleRealTimeDataUpdate = (eventId: string, data: { escrowBalance: number }) => {
-  //   setEventRealTimeData(prev => ({
-  //     ...prev,
-  //     [eventId]: data
-  //   }));
-  // };
-
-  // Callback to update real-time data
-  const handleRealTimeDataUpdate = useCallback(
-    (eventId: string, data: { escrowBalance: number }) => {
-      setEventRealTimeData((prev) => {
-        // Optional: avoid updating if value hasn't changed
-        if (prev[eventId]?.escrowBalance === data.escrowBalance) return prev;
-        return { ...prev, [eventId]: data };
-      });
-    },
-    []
-  );
+  const handleRealTimeDataUpdate = (
+    eventId: string,
+    data: { escrowBalance: number }
+  ) => {
+    setEventRealTimeData((prev) => ({
+      ...prev,
+      [eventId]: data,
+    }));
+  };
 
   // Convert blockchain events to our format and merge with real-time data
   useEffect(() => {

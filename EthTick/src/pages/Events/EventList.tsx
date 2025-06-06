@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 // import { useEvents } from "../../contexts/EventContext"; // Assuming similar context or hook
 import EventItem from "./EventItem";
 import EventFilter from "./EventFilter";
@@ -71,9 +71,15 @@ const EventListPage: React.FC = () => {
     abi: ABI,
     address: CONTRACT_ADDRESS as `0x${string}`,
     functionName: "getAllEvents",
+    query: {
+      staleTime: 15000, // Consider data fresh for 15 seconds
+      refetchInterval: 20000, // Refetch every 20 seconds instead of default
+      refetchOnWindowFocus: false, // Prevent refetch on window focus
+    },
   });
 
-  useEffect(() => {
+  // Memoize the event processing function to prevent unnecessary re-renders
+  const processContractData = useCallback(() => {
     console.log(
       "Contract ABI getAllEvents:",
       nftTicAbi.find((f) => f.name === "getAllEvents")
@@ -105,7 +111,11 @@ const EventListPage: React.FC = () => {
     } else if (contract_details.error) {
       console.error("❌ Contract read error:", contract_details.error);
     }
-  }, [contract_details.data, contract_details.error]);
+  }, [contract_details.data, contract_details.error, CONTRACT_ADDRESS]);
+
+  useEffect(() => {
+    processContractData();
+  }, [processContractData]);
 
   const filteredEvents = useMemo(() => {
     // Prioritize blockchain events over sample events
