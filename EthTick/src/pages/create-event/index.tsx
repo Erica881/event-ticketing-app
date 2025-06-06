@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   useAccount,
   useWriteContract,
@@ -38,9 +38,12 @@ interface CreatedEvent extends Event {
 }
 
 // Component to fetch real-time data for a single event
-function EventWithRealTimeData({ event, onUpdate }: {
-  event: BlockchainEvent,
-  onUpdate: (eventId: string, data: { escrowBalance: number }) => void
+function EventWithRealTimeData({
+  event,
+  onUpdate,
+}: {
+  event: BlockchainEvent;
+  onUpdate: (eventId: string, data: { escrowBalance: number }) => void;
 }) {
   // Fetch escrow balance for this specific event
   const { data: escrowBalance } = useReadContract({
@@ -76,10 +79,16 @@ export default function CreateEvent() {
 
   const [createdEvents, setCreatedEvents] = useState<CreatedEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [eventRealTimeData, setEventRealTimeData] = useState<Record<string, { escrowBalance: number }>>({});
+  const [eventRealTimeData, setEventRealTimeData] = useState<
+    Record<string, { escrowBalance: number }>
+  >({});
 
   // Fetch events created by the connected organizer
-  const { data: blockchainEvents, isError, isLoading: isLoadingEvents } = useReadContract({
+  const {
+    data: blockchainEvents,
+    isError,
+    isLoading: isLoadingEvents,
+  } = useReadContract({
     abi: contractInfo.abi,
     address: contractInfo.address as `0x${string}`,
     functionName: "getEventsByOrganizer",
@@ -91,12 +100,24 @@ export default function CreateEvent() {
   });
 
   // Callback to update real-time data
-  const handleRealTimeDataUpdate = (eventId: string, data: { escrowBalance: number }) => {
-    setEventRealTimeData(prev => ({
-      ...prev,
-      [eventId]: data
-    }));
-  };
+  // const handleRealTimeDataUpdate = (eventId: string, data: { escrowBalance: number }) => {
+  //   setEventRealTimeData(prev => ({
+  //     ...prev,
+  //     [eventId]: data
+  //   }));
+  // };
+
+  // Callback to update real-time data
+  const handleRealTimeDataUpdate = useCallback(
+    (eventId: string, data: { escrowBalance: number }) => {
+      setEventRealTimeData((prev) => {
+        // Optional: avoid updating if value hasn't changed
+        if (prev[eventId]?.escrowBalance === data.escrowBalance) return prev;
+        return { ...prev, [eventId]: data };
+      });
+    },
+    []
+  );
 
   // Convert blockchain events to our format and merge with real-time data
   useEffect(() => {
@@ -113,7 +134,7 @@ export default function CreateEvent() {
         for (const event of blockchainEvents as BlockchainEvent[]) {
           const eventId = event.id.toString();
           const realTimeData = eventRealTimeData[eventId];
-          
+
           // Calculate tickets sold (simplified approach)
           // For free events, we can't calculate from escrow balance, so we'll use a different approach
           let ticketsSold = 0;
@@ -123,8 +144,9 @@ export default function CreateEvent() {
             ticketsSold = 0;
           } else {
             // For paid events, calculate from escrow balance
-            ticketsSold = realTimeData?.escrowBalance ?
-              Math.floor(realTimeData.escrowBalance / Number(event.cost)) : 0;
+            ticketsSold = realTimeData?.escrowBalance
+              ? Math.floor(realTimeData.escrowBalance / Number(event.cost))
+              : 0;
           }
 
           const processedEvent: CreatedEvent = {
@@ -167,7 +189,7 @@ export default function CreateEvent() {
       }
 
       console.log("Completing event:", eventId);
-      
+
       const tx = await writeContractAsync({
         abi: contractInfo.abi,
         address: contractInfo.address as `0x${string}`,
@@ -176,10 +198,10 @@ export default function CreateEvent() {
       });
 
       console.log("Transaction sent:", tx);
-      
+
       // Update local state optimistically
-      setCreatedEvents(prev =>
-        prev.map(event =>
+      setCreatedEvents((prev) =>
+        prev.map((event) =>
           event.id === eventId
             ? { ...event, isCompleted: true, transactionHash: tx }
             : event
@@ -187,7 +209,7 @@ export default function CreateEvent() {
       );
     } catch (error: any) {
       console.error("Complete event failed:", error);
-      
+
       // Extract revert reason if available
       if (error?.cause?.reason) {
         console.error("Contract revert reason:", error.cause.reason);
@@ -208,34 +230,31 @@ export default function CreateEvent() {
         return;
       }
 
-
       console.log("Cancelling event:", eventId);
       console.log("Event ID as BigInt:", BigInt(eventId));
-      
+
       const tx = await writeContractAsync({
         abi: contractInfo.abi,
         address: contractInfo.address as `0x${string}`,
         functionName: "cancelEvent",
         args: [BigInt(eventId)],
-
       });
 
       console.log("Transaction sent successfully:", tx);
-      
+
       // Update local state optimistically
-      setCreatedEvents(prev =>
-        prev.map(event =>
+      setCreatedEvents((prev) =>
+        prev.map((event) =>
           event.id === eventId
             ? { ...event, isCancelled: true, transactionHash: tx }
             : event
         )
       );
-      
+
       console.log("UI updated - event should now show as cancelled");
-      
     } catch (error: any) {
       console.error("Cancel event failed:", error);
-      
+
       // Extract revert reason if available
       if (error?.cause?.reason) {
         console.error("Contract revert reason:", error.cause.reason);
@@ -246,7 +265,7 @@ export default function CreateEvent() {
       if (error?.message) {
         console.error("Error message:", error.message);
       }
-      
+
       // Log the full error object to see all available information
       console.error("Full error object:", JSON.stringify(error, null, 2));
     }
@@ -260,18 +279,18 @@ export default function CreateEvent() {
   return (
     <>
       <Navbar />
-      
+
       {/* Real-time data fetchers for each event */}
-      {blockchainEvents && Array.isArray(blockchainEvents) &&
-        (blockchainEvents as BlockchainEvent[]).map(event => (
+      {blockchainEvents &&
+        Array.isArray(blockchainEvents) &&
+        (blockchainEvents as BlockchainEvent[]).map((event) => (
           <EventWithRealTimeData
             key={event.id.toString()}
             event={event}
             onUpdate={handleRealTimeDataUpdate}
           />
-        ))
-      }
-      
+        ))}
+
       <div className="container">
         {/* Header Section */}
         <div className="create-event-header">
@@ -288,7 +307,10 @@ export default function CreateEvent() {
         <div className="created-events-section">
           <div className="section-header">
             <h2>Created Event</h2>
-            <Link href="/create-event/create-event-form" className="create-another-btn">
+            <Link
+              href="/create-event/create-event-form"
+              className="create-another-btn"
+            >
               Create Another Event
             </Link>
           </div>
@@ -310,95 +332,110 @@ export default function CreateEvent() {
 
           {/* Events List */}
           <div className="created-events-list">
-            {!isLoadingEvents && !isLoading && createdEvents.map((event) => (
-              <div key={event.id} className="created-event-card">
-                <div className="event-card-header">
-                  <h3>{event.name}</h3>
-                </div>
-                
-                <div className="event-card-content">
-                  <div className="event-description-box">
-                    <textarea 
-                      value={event.description}
-                      readOnly
-                      className="event-description-textarea"
-                    />
+            {!isLoadingEvents &&
+              !isLoading &&
+              createdEvents.map((event) => (
+                <div key={event.id} className="created-event-card">
+                  <div className="event-card-header">
+                    <h3>{event.name}</h3>
                   </div>
-                  
-                  <div className="event-stats">
-                    <div className="stat-item">
-                      <span className="stat-label">Tic Price:</span>
-                      <span className="stat-value">
-                        {(event.isFree || event.price === 0) ? "Free Entry" : `${event.price} wei`}
-                      </span>
-                    </div>
-                    <div className="stat-item">
-                      <span className="stat-label">Sold:</span>
-                      <span className="stat-value">{event.ticketsSold} ticket(s)</span>
-                    </div>
-                    <div className="stat-item">
-                      <span className="stat-label">Escrow Balance:</span>
-                      <span className="stat-value">{event.escrowBalance} wei</span>
-                    </div>
-                  </div>
-                </div>
 
-                <div className="event-actions">
-                  {!event.isCompleted && !event.isCancelled && (
-                    <>
-                      <button
-                        className="action-btn complete-btn"
-                        onClick={() => handleCompleteEvent(event.id)}
-                      >
-                        Complete Event
-                      </button>
-                      <button
-                        className="action-btn cancel-btn"
-                        onClick={() => handleCancelEvent(event.id)}
-                      >
-                        Cancel Event
-                      </button>
-                    </>
-                  )}
-                  
-                  {event.isCompleted && (
-                    <div className="event-status-section">
-                      <div className="status-badge completed">
-                        Event Completed
+                  <div className="event-card-content">
+                    <div className="event-description-box">
+                      <textarea
+                        value={event.description}
+                        readOnly
+                        className="event-description-textarea"
+                      />
+                    </div>
+
+                    <div className="event-stats">
+                      <div className="stat-item">
+                        <span className="stat-label">Tic Price:</span>
+                        <span className="stat-value">
+                          {event.isFree || event.price === 0
+                            ? "Free Entry"
+                            : `${event.price} wei`}
+                        </span>
                       </div>
-                      {event.transactionHash && (
-                        <div className="transaction-success">
-                          <div className="success-indicator">
-                            <span className="success-icon">✓</span>
-                            <span>Transaction Success</span>
-                          </div>
-                          <div className="transaction-note">
-                            Include the transaction hash and direct link to check the transaction
-                          </div>
+                      <div className="stat-item">
+                        <span className="stat-label">Sold:</span>
+                        <span className="stat-value">
+                          {event.ticketsSold} ticket(s)
+                        </span>
+                      </div>
+                      <div className="stat-item">
+                        <span className="stat-label">Escrow Balance:</span>
+                        <span className="stat-value">
+                          {event.escrowBalance} wei
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="event-actions">
+                    {!event.isCompleted && !event.isCancelled && (
+                      <>
+                        <button
+                          className="action-btn complete-btn"
+                          onClick={() => handleCompleteEvent(event.id)}
+                        >
+                          Complete Event
+                        </button>
+                        <button
+                          className="action-btn cancel-btn"
+                          onClick={() => handleCancelEvent(event.id)}
+                        >
+                          Cancel Event
+                        </button>
+                      </>
+                    )}
+
+                    {event.isCompleted && (
+                      <div className="event-status-section">
+                        <div className="status-badge completed">
+                          Event Completed
                         </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {event.isCancelled && (
-                    <div className="status-badge cancelled">
-                      Event Cancelled
-                    </div>
-                  )}
+                        {event.transactionHash && (
+                          <div className="transaction-success">
+                            <div className="success-indicator">
+                              <span className="success-icon">✓</span>
+                              <span>Transaction Success</span>
+                            </div>
+                            <div className="transaction-note">
+                              Include the transaction hash and direct link to
+                              check the transaction
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {event.isCancelled && (
+                      <div className="status-badge cancelled">
+                        Event Cancelled
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
 
-          {!isLoadingEvents && !isLoading && !isError && createdEvents.length === 0 && (
-            <div className="no-events">
-              <div className="no-events-icon">🎫</div>
-              <p>You haven't created any events yet.</p>
-              <Link href="/create-event/create-event-form" className="create-first-event-btn">
-                Create Your First Event
-              </Link>
-            </div>
-          )}
+          {!isLoadingEvents &&
+            !isLoading &&
+            !isError &&
+            createdEvents.length === 0 && (
+              <div className="no-events">
+                <div className="no-events-icon">🎫</div>
+                <p>You haven't created any events yet.</p>
+                <Link
+                  href="/create-event/create-event-form"
+                  className="create-first-event-btn"
+                >
+                  Create Your First Event
+                </Link>
+              </div>
+            )}
         </div>
       </div>
     </>
