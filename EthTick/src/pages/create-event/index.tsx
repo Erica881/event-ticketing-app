@@ -102,15 +102,26 @@ export default function CreateEvent() {
   });
 
   // Callback to update real-time data
-  const handleRealTimeDataUpdate = (
-    eventId: string,
-    data: { escrowBalance: number }
-  ) => {
-    setEventRealTimeData((prev) => ({
-      ...prev,
-      [eventId]: data,
-    }));
-  };
+  // const handleRealTimeDataUpdate = (
+  //   eventId: string,
+  //   data: { escrowBalance: number }
+  // ) => {
+  //   setEventRealTimeData((prev) => ({
+  //     ...prev,
+  //     [eventId]: data,
+  //   }));
+  // };
+
+  const handleRealTimeDataUpdate = useCallback(
+    (eventId: string, data: { escrowBalance: number }) => {
+      setEventRealTimeData((prev) => {
+        // Optional: avoid updating if value hasn't changed
+        if (prev[eventId]?.escrowBalance === data.escrowBalance) return prev;
+        return { ...prev, [eventId]: data };
+      });
+    },
+    []
+  );
 
   // Convert blockchain events to our format and merge with real-time data
   useEffect(() => {
