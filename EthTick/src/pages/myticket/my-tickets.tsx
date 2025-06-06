@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import type { NextPage } from "next";
 import Head from "next/head";
 import Navbar from "../Navbar";
@@ -21,6 +21,7 @@ interface MyTicket extends Ticket {
   tokenIds: string[]; // Array of actual token IDs from the blockchain
   ticketCount: number; // Number of tickets owned for this event
   transactionHash?: string;
+  hasRefunded?: boolean; // Track if user has already claimed refund
 }
 
 const MyTickets: NextPage = () => {
@@ -66,15 +67,29 @@ const MyTickets: NextPage = () => {
     if (!address || !isConnected) return 0;
     
     try {
-      // This would be a contract call to get ticketsBought[eventId][userAddress]
-      // For now, we'll use localStorage as the source of truth
+      // Check both purchased events and refunded events
       const purchasedEvents = JSON.parse(localStorage.getItem(`purchased_events_${address}`) || '[]');
-      return purchasedEvents.includes(eventId) ? 1 : 0;
+      const refundedEvents = JSON.parse(localStorage.getItem(`refunded_events_${address}`) || '[]');
+      
+      // Return 1 if event was purchased (even if refunded, to show cancelled ticket)
+      return (purchasedEvents.includes(eventId) || refundedEvents.includes(eventId)) ? 1 : 0;
     } catch (error) {
       console.error('Error getting tickets bought:', error);
       return 0;
     }
   }, [address, isConnected]);
+
+  // Function to check if user has already refunded for an event
+  const hasUserRefunded = useCallback((eventId: string) => {
+    if (!address) return false;
+    try {
+      const refundedEvents = JSON.parse(localStorage.getItem(`refunded_events_${address}`) || '[]');
+      return refundedEvents.includes(eventId);
+    } catch (error) {
+      console.error('Error checking refund status:', error);
+      return false;
+    }
+  }, [address]);
 
   const isError = balanceError || eventsError;
   const isLoadingTickets = isLoadingBalance || isLoadingEvents;
@@ -117,6 +132,7 @@ const MyTickets: NextPage = () => {
               isEventCancelled: event.isCancelled || false,
               tokenIds: tokenIds,
               ticketCount: ticketCount,
+              hasRefunded: hasUserRefunded(eventId),
             };
             processedTickets.push(processedTicket);
           }
@@ -132,7 +148,7 @@ const MyTickets: NextPage = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [allEvents, address, getTicketsBoughtForEvent]);
+  }, [allEvents, address, getTicketsBoughtForEvent, hasUserRefunded]);
 
   // Process tickets data
   useEffect(() => {
@@ -163,7 +179,7 @@ const MyTickets: NextPage = () => {
     }
   };
 
-  // Show refund success message and remove ticket from localStorage
+  // Show refund success message and update refund status
   React.useEffect(() => {
     if (isRefundConfirmed && address) {
       const refundedEventId = sessionStorage.getItem('refundedEventId');
@@ -174,15 +190,26 @@ const MyTickets: NextPage = () => {
         const updatedEvents = purchasedEvents.filter((eventId: string) => eventId !== refundedEventId);
         localStorage.setItem(`purchased_events_${address}`, JSON.stringify(updatedEvents));
         
+        // Add to refunded events list to keep track of refunded tickets
+        const refundedEvents = JSON.parse(localStorage.getItem(`refunded_events_${address}`) || '[]');
+        if (!refundedEvents.includes(refundedEventId)) {
+          refundedEvents.push(refundedEventId);
+          localStorage.setItem(`refunded_events_${address}`, JSON.stringify(refundedEvents));
+        }
+        
         // Clear the session storage
         sessionStorage.removeItem('refundedEventId');
         
-        // Update the tickets state immediately
+        // Update the tickets state to reflect refund status
         setTickets(prevTickets =>
-          prevTickets.filter(ticket => ticket.eventId !== refundedEventId)
+          prevTickets.map(ticket =>
+            ticket.eventId === refundedEventId
+              ? { ...ticket, hasRefunded: true }
+              : ticket
+          )
         );
         
-        alert('Refund processed successfully! The ticket has been removed from your collection.');
+        alert('Refund processed successfully! The ticket will remain visible as cancelled.');
       }
     }
   }, [isRefundConfirmed, address]);
@@ -195,22 +222,59 @@ const MyTickets: NextPage = () => {
     }
   }, [refundError]);
 
-  // Filter tickets based on selected filter
-  const filteredTickets = tickets.filter(ticket => {
-    const eventDate = new Date(ticket.eventDate);
+  // Filter and sort tickets based on selected filter
+  const filteredTickets = useMemo(() => {
+    const eventDate = (ticket: MyTicket) => new Date(ticket.eventDate);
     const now = new Date();
     
-    switch (filter) {
-      case "upcoming":
-        return !ticket.isEventCompleted && !ticket.isEventCancelled && eventDate > now;
-      case "completed":
-        return ticket.isEventCompleted;
-      case "cancelled":
-        return ticket.isEventCancelled;
-      default:
-        return true;
+    let filtered = tickets.filter(ticket => {
+      switch (filter) {
+        case "upcoming":
+          return !ticket.isEventCompleted && !ticket.isEventCancelled && eventDate(ticket) > now;
+        case "completed":
+          return ticket.isEventCompleted;
+        case "cancelled":
+          return ticket.isEventCancelled;
+        default:
+          return true;
+      }
+    });
+
+    // Sort tickets: upcoming first, then completed, then cancelled
+    if (filter === "all") {
+      return filtered.sort((a, b) => {
+        const dateA = eventDate(a);
+        const dateB = eventDate(b);
+        
+        // Priority order: upcoming -> completed -> cancelled
+        const getPriority = (ticket: MyTicket) => {
+          if (ticket.isEventCancelled) return 3; // Lowest priority (bottom)
+          if (ticket.isEventCompleted) return 2; // Medium priority
+          if (dateA < now) return 2; // Past events (treat as completed)
+          return 1; // Highest priority (upcoming events)
+        };
+        
+        const priorityA = getPriority(a);
+        const priorityB = getPriority(b);
+        
+        // If different priorities, sort by priority
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB;
+        }
+        
+        // If same priority, sort by date (newest first for upcoming, oldest first for completed/cancelled)
+        if (priorityA === 1) {
+          // Upcoming events: sort by date (soonest first)
+          return dateA.getTime() - dateB.getTime();
+        } else {
+          // Completed/cancelled events: sort by date (most recent first)
+          return dateB.getTime() - dateA.getTime();
+        }
+      });
     }
-  });
+
+    return filtered;
+  }, [tickets, filter]);
 
   const formatAddress = (address: string) => {
     if (!address) return "";
@@ -289,7 +353,7 @@ const MyTickets: NextPage = () => {
               <div className="tickets-container">
                 {filteredTickets.length > 0 ? (
                   <div className="tickets-grid">
-                    {filteredTickets.map((ticket) => {
+                    {filteredTickets.map((ticket: MyTicket) => {
                       const ticketStatus = getTicketStatus(ticket);
                       return (
                         <div key={ticket.id} className="modern-ticket-card">
@@ -359,7 +423,7 @@ const MyTickets: NextPage = () => {
                                 <div className="info-content">
                                   <span className="info-label">Token IDs</span>
                                   <span className="info-value token-ids-list">
-                                    {ticket.tokenIds.map((tokenId, index) => (
+                                    {ticket.tokenIds.map((tokenId: string, index: number) => (
                                       <span key={tokenId} className="token-id-item">
                                         #{tokenId}
                                         {index < ticket.tokenIds.length - 1 && ', '}
@@ -394,7 +458,7 @@ const MyTickets: NextPage = () => {
                               </button>
                             )}
                             
-                            {ticket.isEventCancelled && (
+                            {ticket.isEventCancelled && !ticket.hasRefunded && (
                               <button
                                 className="action-btn refund-btn"
                                 onClick={() => handleRefund(ticket.eventId)}
@@ -403,6 +467,13 @@ const MyTickets: NextPage = () => {
                                 <span className="btn-icon">💸</span>
                                 {isRefundPending || isRefundConfirming ? 'Processing...' : 'Get Refund'}
                               </button>
+                            )}
+                            
+                            {ticket.isEventCancelled && ticket.hasRefunded && (
+                              <div className="refund-status">
+                                <span className="btn-icon">✅</span>
+                                Refund Processed
+                              </div>
                             )}
                             
                             <button className="action-btn secondary-btn">

@@ -32,6 +32,18 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => {
       return;
     }
 
+    // Check if event is cancelled
+    if (event.isCancelled) {
+      alert("This event has been cancelled and tickets are no longer available for purchase.");
+      return;
+    }
+
+    // Check if event is completed
+    if (event.isCompleted) {
+      alert("This event has been completed and tickets are no longer available for purchase.");
+      return;
+    }
+
     // Validate event data
     if (!event.id || isNaN(Number(event.id))) {
       alert("Invalid event ID. Please refresh the page and try again.");
@@ -119,13 +131,15 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => {
 
   // Check if event is sold out (maxTickets represents remaining tickets from smart contract)
   const isSoldOut = event.maxTickets <= 0;
+  const isCancelled = event.isCancelled || false;
+  const isCompleted = event.isCompleted || false;
 
   const imageUrl =
     event.imageUrl ||
     "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80";
 
   return (
-    <div className="event-item">
+    <div className={`event-item ${isCancelled ? 'cancelled-event' : ''} ${isCompleted ? 'completed-event' : ''}`}>
       <div className="event-image-container">
         <img src={imageUrl} alt={event.name} className="event-image" />
         <div className="event-date-badge">
@@ -134,6 +148,16 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => {
             day: "numeric",
           })}
         </div>
+        {isCancelled && (
+          <div className="cancelled-badge">
+            ❌ CANCELLED
+          </div>
+        )}
+        {isCompleted && !isCancelled && (
+          <div className="completed-badge">
+            ✅ COMPLETED
+          </div>
+        )}
       </div>
 
       <div className="event-content">
@@ -156,7 +180,11 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => {
 
         {/* Show ticket availability status */}
         <div className="ticket-availability">
-          {isSoldOut ? (
+          {isCancelled ? (
+            <p className="cancelled-notice">❌ Event Cancelled</p>
+          ) : isCompleted ? (
+            <p className="completed-notice">✅ Event Completed</p>
+          ) : isSoldOut ? (
             <p className="sold-out-notice">🚫 Sold Out</p>
           ) : event.maxTickets ? (
             <p className="tickets-remaining">🎫 {event.maxTickets} tickets remaining</p>
@@ -165,12 +193,16 @@ const EventItem: React.FC<EventItemProps> = ({ event }) => {
       </div>
 
       <button
-        className={`buy-button ${isSoldOut ? 'sold-out' : ''}`}
+        className={`buy-button ${isSoldOut ? 'sold-out' : ''} ${isCancelled ? 'cancelled' : ''} ${isCompleted ? 'completed' : ''}`}
         onClick={handleBuyClick}
-        disabled={isLoading || isPending || isConfirming || !isConnected || isSoldOut}
+        disabled={isLoading || isPending || isConfirming || !isConnected || isSoldOut || isCancelled || isCompleted}
       >
         {!isConnected ? (
           "Connect Wallet"
+        ) : isCancelled ? (
+          "Event Cancelled"
+        ) : isCompleted ? (
+          "Event Completed"
         ) : isSoldOut ? (
           "Sold Out"
         ) : isLoading || isPending ? (

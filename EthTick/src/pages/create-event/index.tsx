@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   useAccount,
   useWriteContract,
@@ -161,6 +161,31 @@ export default function CreateEvent() {
     processEvents();
   }, [blockchainEvents, eventRealTimeData]);
 
+  // Sort created events: active events first, then completed, then cancelled
+  const sortedCreatedEvents = useMemo(() => {
+    return createdEvents.sort((a, b) => {
+      // Priority order: active -> completed -> cancelled
+      const getPriority = (event: CreatedEvent) => {
+        if (event.isCancelled) return 3; // Lowest priority (bottom)
+        if (event.isCompleted) return 2; // Medium priority
+        return 1; // Highest priority (active events)
+      };
+      
+      const priorityA = getPriority(a);
+      const priorityB = getPriority(b);
+      
+      // If different priorities, sort by priority
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+      
+      // If same priority, sort by date (newest first)
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return dateB - dateA;
+    });
+  }, [createdEvents]);
+
   const handleCompleteEvent = async (eventId: string) => {
     try {
       if (!writeContractAsync) {
@@ -312,7 +337,7 @@ export default function CreateEvent() {
 
           {/* Events List */}
           <div className="created-events-list">
-            {!isLoadingEvents && !isLoading && createdEvents.map((event) => (
+            {!isLoadingEvents && !isLoading && sortedCreatedEvents.map((event: CreatedEvent) => (
               <div key={event.id} className="created-event-card">
                 <div className="event-card-header">
                   <h3>{event.name}</h3>
