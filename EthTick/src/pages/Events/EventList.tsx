@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback } from "react";
 import EventItem from "./EventItem";
 import EventFilter from "./EventFilter";
 import { Event } from "../../interfaces";
-import { useReadContract } from "wagmi";
+import { useAccount, useReadContract, useChainId } from "wagmi";
 import { contractInfo } from "../../pages/util"; // Importing contract info from util.ts
 
 const EventListPage: React.FC = () => {
@@ -11,6 +11,8 @@ const EventListPage: React.FC = () => {
   const [realEvents, setRealEvents] = useState<Event[]>([]); // Using sample data
   const [isLoading, setIsLoading] = useState(false); // Placeholder
   const [error, setError] = useState<string | null>(null); // Placeholder
+  const { isConnected } = useAccount();
+  const chainId = useChainId();
 
   const [filter, setFilter] = useState<
     "all" | "free" | "payable" | "cancelled"
@@ -20,6 +22,7 @@ const EventListPage: React.FC = () => {
     address: CONTRACT_ADDRESS as `0x${string}`,
     functionName: "getAllEvents",
     query: {
+      enabled: isConnected, // <--- Ensure the hook only runs when connected
       staleTime: 5000, // Consider data fresh for 5 seconds (shorter for ticket updates)
       refetchInterval: 8000, // Refetch every 8 seconds to catch ticket purchases quickly
       refetchOnWindowFocus: false, // Prevent refetch on window focus
@@ -34,7 +37,7 @@ const EventListPage: React.FC = () => {
     );
     console.log("Calling contract at:", CONTRACT_ADDRESS);
 
-    if (Array.isArray(contract_details.data)) {
+    if (Array.isArray(contract_details.data) && isConnected) {
       console.log("✅ Contract read successful:");
       console.log("Raw contract details:", contract_details.data);
       const eventsFromChain = contract_details.data
