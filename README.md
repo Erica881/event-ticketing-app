@@ -28,42 +28,6 @@ Traditional centralized ticketing platforms suffer from three critical vulnerabi
 
 ---
 
-## 🏗️ System Architecture & Escrow Lifecycle
-
-GitHub automatically renders the diagram below to visualize how funds and NFTs move through the EthTic smart contract:
-
-```mermaid
-flowchart TD
-    subgraph Client ["🦊 Tier 1: Web3 Frontend dApp"]
-        A[User Wallet: MetaMask / RainbowKit]
-        B[Next.js + Wagmi / Viem Hooks]
-        A <--> B
-    end
-
-    subgraph Contract ["⛓️ Tier 2: EthTic Smart Contract (Solidity 0.8.9 on Scroll L2)"]
-        C[Verify Seat Availability & Supply Cap]
-        D[Mint ERC-721 NFT Ticket to Buyer]
-        E[(Smart Contract Escrow Vault)]
-    end
-
-    subgraph Resolution ["⚖️ Tier 3: Deterministic Event State Resolution"]
-        F{Event Status?}
-        G[✅ Path A: Event Completed]
-        H[🔴 Path B: Event Cancelled]
-        I[Organizer Withdraws Escrow Proceeds]
-        J[Attendee Triggers Self-Service 100% ETH Refund]
-    end
-
-    B -->|Signs Purchase Tx + ETH| C
-    C -->|Valid| D
-    C -->|Locks Payment| E
-    E --> F
-    F -->|Completed| G --> I
-    F -->|Cancelled| H --> J
-```
-
----
-
 ## 🛠️ Technology Stack
 
 | Layer | Technologies Used | Purpose |
